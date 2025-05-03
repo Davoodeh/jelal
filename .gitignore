@@ -1,0 +1,10 @@
+/target
+Cargo.lock
+
+# CMake files for clean -fxd folks
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+# TODO add non-make files as well

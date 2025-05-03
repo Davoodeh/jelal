@@ -1,0 +1,6 @@
+language = "C"
+
+[parse.expand]
+crates = ["jelal"]
+default_features = false
+features = ["c"]
