@@ -149,5 +149,4 @@ more TODO see the sources and the section below.
 - Add Go support
 - Add a class based C++ intermediate.
 - Add Github build tools, lints, formatters and Clippy!
-- Publish on crates.io
 - Add Windows and MacOS support
