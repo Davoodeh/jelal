@@ -145,6 +145,8 @@ conventions in the section ahead in mind while developing.
   else, keep things verbose and primitive)
 - CMake targets should resemble the tools and expressions used in their process
   in PascalCase.
+- Keep changes in as small as possible commits with imperative short
+  descriptions.
 
 #### Versioning
 
