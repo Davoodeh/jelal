@@ -113,6 +113,15 @@ The requirements for the tools mentioned above can be found on their resources.
 Installation as of now only installs the libraries for the host target and the C
 headers.
 
+### Contribute
+
+The feature set seems to be enough for the goal of the project and the most
+welcome contributions as for now are tests! The first and foremost important
+goal of this project is to be "correct" rather than anything else, including
+fast and unreadable. The languages can be expanded further as well. For
+more TODO see the sources and the section below. Please keep the simple
+conventions in the section ahead in mind while developing.
+
 #### Table of Abbrevations, Orders and Style
 
 - Always, the order of values, codes and all else is first Year, Month then Day.
@@ -136,14 +145,6 @@ headers.
   else, keep things verbose and primitive)
 - CMake targets should resemble the tools and expressions used in their process
   in PascalCase.
-
-### Contribute
-
-The feature set seems to be enough for the goal of the project and the most
-welcome contributions as for now are tests! The first and foremost important
-goal of this project is to be "correct" rather than anything else, including
-fast and unreadable. The languages can be expanded further as well. For
-more TODO see the sources and the section below.
 
 #### TODOs
 
