@@ -1,3 +1,6 @@
+![Crates.io Version](https://img.shields.io/crates/v/jelal?link=https%3A%2F%2Fcrates.io%2Fcrates%2Fjelal)
+![docs.rs](https://img.shields.io/docsrs/jelal?link=https%3A%2F%2Fdocs.rs%2Fjelal%2Flatest%2Fjelal%2F)
+
 Jelal is a modern and lean Jalali (Persian/Iranian) calendar for developers.
 
 Supported in:
