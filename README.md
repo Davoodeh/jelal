@@ -146,6 +146,11 @@ conventions in the section ahead in mind while developing.
 - CMake targets should resemble the tools and expressions used in their process
   in PascalCase.
 
+#### Versioning
+
+Before `1.0.0`, every minor version (`0.THIS.0`) bump *may* be a breaking change
+for the dependent code using this library.
+
 #### TODOs
 
 - Debloat staticlib.a output
