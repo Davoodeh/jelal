@@ -75,6 +75,17 @@ pub const EPOCH_MONTH: Month = 10;
 /// The day of month which corresponds to 1970, 1, 1.
 pub const EPOCH_DAY: Day = 11;
 
+/// The equivalent of year zero in this calendar (-1).
+///
+/// This is a common choice, consult Wikipedia on year 0.
+pub const Y0_REPLACEMENT: Year = -1;
+
+/// The start of the calendar, based on Wikipedia and other references, year 1.
+pub const Y_START: Year = 1;
+
+/// What is the first day of the year.
+pub const DOY_START: Doy = 1;
+
 /// Years that are not leap while 33-year rule marks them as leap.
 ///
 /// "All these years are not leap, while they are considered leap by the 33-year
@@ -256,17 +267,6 @@ pub struct Date {
 }
 
 impl Date {
-    /// The equivalent of year zero in this struct (-1).
-    ///
-    /// This is a common choice, consult Wikipedia on year 0.
-    pub const Y0_REPLACEMENT: Year = -1;
-
-    /// The start of the calendar, based on Wikipedia and other references, year 1.
-    pub const Y_START: Year = 1;
-
-    /// What is the first day of the year.
-    pub const DOY_START: Doy = 1;
-
     // constructors
     // Option<Self> is generally bad for FFIs
 
@@ -301,7 +301,7 @@ impl Date {
     /// This is private since it should be impossible to create an invalid year.
     const fn ensure_y(y: &mut Year) {
         if *y == 0 {
-            *y = Self::Y0_REPLACEMENT
+            *y = Y0_REPLACEMENT
         }
     }
 
@@ -373,7 +373,7 @@ impl Date {
     /// Create a new year with unchecked arguments (non-zero year, month and day).
     ///
     /// # Safety
-    /// - Year must not be 0, if so, replace it with [`Self::Y0_REPLACEMENT`] (-1)
+    /// - Year must not be 0, if so, replace it with [`Y0_REPLACEMENT`] (-1)
     /// - If 12/30 (366th day of the year, the leap) is selected, the year must be a leap year.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
@@ -388,7 +388,7 @@ impl Date {
     /// Create a new year with unchecked arguments (non-zero year, month and day).
     ///
     /// # Safety
-    /// - Year must not be 0, if so, replace it with [`Self::Y0_REPLACEMENT`] (-1)
+    /// - Year must not be 0, if so, replace it with [`Y0_REPLACEMENT`] (-1)
     /// - If 12/30 (366th day of the year, the leap) is selected, the year must be a leap year.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
