@@ -7,6 +7,8 @@ edition = "2024"
 rust-version = "1.85" # technically much lower, but aim is for 2024
 repository = "https://github.com/Davoodeh/jelal"
 license = "Apache-2.0 OR MIT"
+keywords = ["Python", "C", "Jalali", "Jelal"]
+categories = ["development-tools::ffi"]
 
 [lib]
 proc-macro = true

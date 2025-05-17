@@ -7,6 +7,8 @@ rust-version = "1.85" # technically much lower, but aim is for 2024
 authors = ["M. Yas. Davoodeh <MYDavoodeh@gmail.com>"]
 repository = "https://github.com/Davoodeh/jelal"
 license = "Apache-2.0 OR MIT"
+keywords = ["calendar", "Persian", "Jalali", "Jelal"]
+categories = ["date-and-time", "no-std::no-alloc", "wasm"]
 
 [lib]
 name = "jelal"
