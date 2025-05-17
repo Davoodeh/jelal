@@ -45,7 +45,8 @@ formula.
 Regardless, this crate is `no_std` for the ease of use cross boundaries.
 Everything is in const so usage is comptime and is a viable option. No
 dependencies are required! Once `no_core` is stable, core will be stripped away
-too.
+too. All in all, playing with the flags and the programs for linking, compiling
+and else a bit, this can easily be as lean as 8KB or way less.
 
 ## Example and Design Motivation
 
