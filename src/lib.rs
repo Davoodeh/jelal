@@ -63,6 +63,18 @@ pub const FIRST_HALF_MAX_DOM: Dom = 31;
 /// Days of month in months up to and including the sixth (last month before new half).
 pub const SECOND_HALF_MAX_DOM: Dom = 30;
 
+/// The year 1970.
+pub const EPOCH_YEAR: Year = 1348;
+
+/// What day of [`EPOCH_YEAR`] is 1970, 1, 1.
+pub const EPOCH_DOY: Doy = 287;
+
+/// The month of the first day of 1970.
+pub const EPOCH_MONTH: Month = 10;
+
+/// The day of month which corresponds to 1970, 1, 1.
+pub const EPOCH_DAY: Day = 11;
+
 /// Years that are not leap while 33-year rule marks them as leap.
 ///
 /// "All these years are not leap, while they are considered leap by the 33-year

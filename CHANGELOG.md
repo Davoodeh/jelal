@@ -7,5 +7,6 @@
 
 ## Add
 
+- constants representing the Jalali/Persian date of the Epoch start (1970, 1, 1)
 - `Date::cmp` (`const fn`) for comparisons in comptime
 - `jelal_proc::fn_attr` with `const`, `unconst`, `extern` and `unextern`
