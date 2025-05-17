@@ -42,7 +42,8 @@ for how exactly calculations about this calendar must be since there is nothing
 but hard to read papers from 2000's on this issue, all text and not a single
 formula.
 
-Regardless, this crate is `no_std` for the ease of use cross boundaries. No
+Regardless, this crate is `no_std` for the ease of use cross boundaries.
+Everything is in const so usage is comptime and is a viable option. No
 dependencies are required! Once `no_core` is stable, core will be stripped away
 too.
 

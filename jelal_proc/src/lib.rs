@@ -71,6 +71,8 @@ pub fn py_attr(args: TokenStream, tokens: TokenStream) -> TokenStream {
 enum FnAttr {
     Extern(LitStr),
     Unextern,
+    Const,
+    Unconst,
 }
 
 impl FnAttr {
@@ -84,6 +86,8 @@ impl FnAttr {
                 })
             }
             FnAttr::Unextern => fun.sig.abi = None,
+            FnAttr::Const => fun.sig.constness = Some(Default::default()),
+            FnAttr::Unconst => fun.sig.constness = None,
         }
     }
 }
@@ -95,8 +99,13 @@ impl Parse for FnAttr {
             input.parse::<Token![extern]>().unwrap();
             return Ok(Self::Extern(input.parse::<LitStr>()?));
         }
+        if lookahead.peek(Token![const]) {
+            input.parse::<Token![const]>().unwrap();
+            return Ok(Self::Const);
+        }
         if lookahead.peek(Ident) {
             match input.parse::<Ident>().unwrap().to_string().as_str() {
+                "unconst" => return Ok(Self::Unconst),
                 "unextern" => return Ok(Self::Unextern),
                 _ => {}
             }
@@ -127,6 +136,26 @@ impl Parse for FnAttr {
 /// ```rust,ignore
 /// #[cfg_attr(criterion, fn_attr(unextern))]
 /// extern "ABI" fn f() {}
+/// // turns to:
+/// fn f() {}
+/// ```
+///
+/// #### Constness
+///
+/// ##### Marking as `const`
+///
+/// ```rust,ignore
+/// #[cfg_attr(criterion, fn_attr(const))]
+/// fn f() {}
+/// // turns to:
+/// const fn f() {}
+/// ```
+///
+/// ##### Unmarking as `const`
+///
+/// ```rust,ignore
+/// #[cfg_attr(criterion, fn_attr(unconst))]
+/// const fn f() {}
 /// // turns to:
 /// fn f() {}
 /// ```
