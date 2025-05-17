@@ -674,4 +674,14 @@ mod tests {
         assert_eq!(v, Date { y: 1350, doy: 187 });
         assert_eq!(v, unsafe { Date::from_ymd_unchecked(1350, 7, 1) });
     }
+
+    // Since the library is `cdylib`, Rust doesn't test the snippets in the code, this is a manual
+    // copy of the code mentioned in the readme.
+    #[test]
+    fn test_readme() {
+        let fixed_point = Date::from_ymd(1404, 2, 13).unwrap(); // 2025, 5 (May), 3
+        let mut new = fixed_point.clone();
+        new.add_d(11);
+        assert_eq!((new.y(), new.m(), new.d()), (1404, 2, 24));
+    }
 }

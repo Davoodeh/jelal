@@ -1,6 +1,12 @@
 ![Crates.io Version](https://img.shields.io/crates/v/jelal?link=https%3A%2F%2Fcrates.io%2Fcrates%2Fjelal)
 ![docs.rs](https://img.shields.io/docsrs/jelal?link=https%3A%2F%2Fdocs.rs%2Fjelal%2Flatest%2Fjelal%2F)
 
+---
+
+> "_ASAD_!"  -[Captian Jelal](https://soundcloud.com/alisorena/nakhodajelal)
+
+---
+
 Jelal is a modern and lean Jalali (Persian/Iranian) calendar for developers.
 
 Supported in:
@@ -39,6 +45,38 @@ formula.
 Regardless, this crate is `no_std` for the ease of use cross boundaries. No
 dependencies are required! Once `no_core` is stable, core will be stripped away
 too.
+
+## Example and Design Motivation
+
+This library does not calculate the date directly and works with a "Day Delta"
+approach. Since both the gregorian and persian calendar are solar and almost
+identical in many aspects, the aim for this library was to just do the least
+possible logical process to convert two days (even if it results in a somewhat
+primitive algorithm). Below an example of this approach is provided.
+
+Consider a fixed point in both calendars with verified equals (i.e Saturday 3rd
+of May (5) 2025 is 13th of Ordibehesht (2) 1404, the date of the start of the
+project).  To convert any other date based on that time, a "Day Delta" or day
+difference with that day in Gregorian is needed. This is a trivial problem which
+is done in almost every date and time library for most languages. In this
+example, we try to convert Wednesday May 14 2025 to Jalali. Since this is
+trivial, no other library is used to calculate the 11 day difference. Granted,
+we run that in this library to add eleven days to the initial fixed-point like
+below, which yields the correct results.
+
+<!-- edit test_readme -->
+``` rust
+let fixed_point = Date::from_ymd(1404, 2, 13).unwrap(); // 2025, 5 (May), 3
+let mut new = fixed_point.clone();
+new.add_d(11);
+assert_eq!((new.y(), new.m(), new.d()), (1404, 2, 24));
+```
+
+As explained above, this has the benefit of being simple and removes all the
+responsiblity of calculating and matching the dates without engaging
+localization, second counting or any other complication. The API is not the most
+easy to use but the goal is not its user-friendliness and rather the ease of its
+use in FFIs, in cross-boundaries and in environments with limited features.
 
 ### Building and Usage
 
