@@ -1,7 +1,4 @@
-//! Create bindgens for functions and else.
-//!
-//! This is a temporary fix for issues in PyO3. Read the README and the descriptions on
-//! [`py_attr()`].
+#![doc = include_str!("../README.md")]
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
