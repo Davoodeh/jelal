@@ -122,6 +122,7 @@ There are the variations (targets) below defined to use like
 - `Maturin` (Python): Creates the library and its package with `maturin`
 - `Wasm32`: Creates the library for `wasm32-unknown-unknown` tuple
 - `Doc`: Creates the documents as `rustdoc` (`cargo doc`) would
+- `Everything`: Build all the above at once
 
 #### Building for Release
 
@@ -143,6 +144,7 @@ required:
 - `WasmPack`: `Wasm32` requirements and also `wasm-pack` (run `cargo install
   wasm-pack`)
 - `Maturin`: requires `maturin` (run `cargo install maturin`)
+- `Everything`: requires all the requirements mentioned above
 
 The requirements for the tools mentioned above can be found on their resources.
 

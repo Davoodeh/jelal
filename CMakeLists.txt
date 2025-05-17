@@ -114,6 +114,12 @@ add_custom_target(Maturin
     VERBATIM
     COMMAND_EXPAND_LISTS)
 
+# Everything is not `ALL` as this CMake is intended to keep that with the
+# minimal dependencies as to make it not to halt if tools are not prepare for
+# anybody who invokes cmake without any explicit target
+add_custom_target(Everything)
+add_dependencies(Everything Lib Doc Cbindgen Wasm32 WasmPack Maturin)
+
 # Install
 
 install(FILES
