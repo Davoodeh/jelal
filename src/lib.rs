@@ -171,7 +171,7 @@ pub fn max_doy(y: Year) -> Doy {
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[repr(C)]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
-#[cfg_attr(feature = "py", pyclass)]
+#[cfg_attr(feature = "py", pyclass(get_all))]
 pub struct Md {
     pub m: Month,
     pub d: Dom,
