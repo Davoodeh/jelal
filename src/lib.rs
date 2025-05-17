@@ -169,7 +169,7 @@ pub fn max_doy(y: Year) -> Doy {
 /// tuple buffer for FFIs. In the current usage for [`Date`], it is simply a day and month counter
 /// starting from 1.
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[repr(C)]
+#[cfg_attr(feature = "c", repr(C))]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 #[cfg_attr(feature = "py", pyclass(get_all))]
 pub struct Md {
@@ -258,7 +258,7 @@ impl Md {
 ///
 /// This calendar does not have a year 0! Skips over 0 to -1.
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[repr(C)]
+#[cfg_attr(feature = "c", repr(C))]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 #[cfg_attr(feature = "py", pyclass(get_all))]
 pub struct Date {

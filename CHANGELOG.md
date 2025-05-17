@@ -2,7 +2,7 @@
 
 ## Change
 
-- `extern "C"` and disable in any non-"c"-feature
+- `extern "C"` and disable `repr(C)` in any non-"c"-feature 
 - `const` and add it to any non-"wasm"-feature
 - location of `Date::*` consts to the root crate
 
