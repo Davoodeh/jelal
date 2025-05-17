@@ -187,11 +187,15 @@ conventions in the section ahead in mind while developing.
   in PascalCase.
 - Keep changes in as small as possible commits with imperative short
   descriptions.
+- Mention the changes in the changelog in the order of "Change", "Remove" and
+  "Add".
 
 #### Versioning
 
 Before `1.0.0`, every minor version (`0.THIS.0`) bump *may* be a breaking change
 for the dependent code using this library.
+
+See the CHANGELOG file in the source for the news about each release.
 
 #### TODOs
 
