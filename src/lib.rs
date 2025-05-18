@@ -473,6 +473,7 @@ impl Date {
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[must_use]
     pub fn set_y(&mut self, mut y: Year) -> bool {
         Self::ensure_y(&mut y);
 
@@ -489,6 +490,7 @@ impl Date {
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[must_use]
     pub fn set_m(&mut self, m: Month) -> bool {
         self.set_md(m, self.d())
     }
@@ -497,6 +499,7 @@ impl Date {
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[must_use]
     pub fn set_d(&mut self, d: Dom) -> bool {
         self.set_md(self.m(), d)
     }
@@ -505,6 +508,7 @@ impl Date {
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[must_use]
     pub fn set_md(&mut self, m: Month, d: Dom) -> bool {
         self.set_doy(Md { m, d }.to_doy())
     }
@@ -513,6 +517,7 @@ impl Date {
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[must_use]
     pub fn set_doy(&mut self, doy: Doy) -> bool {
         if doy > self.max_doy() && doy < 1 {
             return false;
@@ -526,6 +531,7 @@ impl Date {
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[must_use]
     pub fn add_y(&mut self, y: Year) -> bool {
         self.set_y(self.y + y)
     }
@@ -534,6 +540,7 @@ impl Date {
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[must_use]
     pub fn sub_y(&mut self, y: Year) -> bool {
         self.set_y(self.y - y)
     }
