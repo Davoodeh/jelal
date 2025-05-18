@@ -245,13 +245,6 @@ impl Md {
     }
 }
 
-// // TODO make optional with chrono feature
-// pub fn from_days(date: NaiveDate) -> JalaliDate {
-//     let days = date
-//         .signed_duration_since(DateTime::UNIX_EPOCH.date_naive())
-//         .num_days();
-// }
-
 /// Jalali equivalent of the Date in whatever measures.
 ///
 /// Since this struct works by measuring days. Does not concern leap seconds or smaller units.
