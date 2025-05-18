@@ -251,6 +251,12 @@ impl Md {
     }
 }
 
+impl From<Date> for Md {
+    fn from(value: Date) -> Self {
+        value.md()
+    }
+}
+
 /// Jalali equivalent of the Date in whatever measures.
 ///
 /// Since this struct works by measuring days. Does not concern leap seconds or smaller units.
