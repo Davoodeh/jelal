@@ -7,6 +7,8 @@ use core::{
     fmt::{Debug, Display},
 };
 
+jelal_proc::forbid_mutual_feature!("wasm", "c", "py");
+
 #[cfg(not(feature = "wasm"))]
 use jelal_proc::fn_attr;
 

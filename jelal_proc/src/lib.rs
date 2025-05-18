@@ -4,8 +4,9 @@ use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
-    parse_macro_input, Abi, Attribute, Ident, ImplItem, ImplItemFn, ItemFn, ItemImpl, LitStr, Meta,
-    Token,
+    parse_macro_input,
+    punctuated::Punctuated,
+    Abi, Attribute, Ident, ImplItem, ImplItemFn, ItemFn, ItemImpl, LitStr, Meta, Token,
 };
 
 /// Create bindgens for conditional pyo3.
@@ -168,4 +169,33 @@ pub fn fn_attr(args: TokenStream, tokens: TokenStream) -> TokenStream {
     args.apply_to(&mut fun);
 
     fun.into_token_stream().into()
+}
+
+/// Checks if any of the two given criterions are enabled at once.
+///
+/// Contrary to what Cargo suggests about features, this helps to enable mutually exlcusive
+/// features.
+#[proc_macro]
+pub fn forbid_mutual_feature(args: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(args with Punctuated::<LitStr, Token![,]>::parse_terminated);
+
+    // make all(item, any(any_other_items,...)), for each item in the parsed list
+    let criteria = args.iter().map(|i| {
+        let any_other = args
+            .iter()
+            .filter(|j| i.to_token_stream().to_string() != j.to_token_stream().to_string());
+        quote! { all(feature = #i, any(#(feature = #any_other,)*)) }
+    });
+
+    let message = format!(
+        "only one of the features specified in the following list is allowed at a time: {:?}",
+        args.iter().map(|i| i.value()).collect::<Vec<_>>()
+    );
+
+    quote! {
+        #[cfg(any(#(#criteria,)*))]
+        compile_error!(#message);
+
+    }
+    .into()
 }
