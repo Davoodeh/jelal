@@ -77,6 +77,10 @@ pub const EPOCH_MONTH: Month = 10;
 /// The day of month which corresponds to 1970, 1, 1.
 pub const EPOCH_DAY: Day = 11;
 
+/// 1970, 1, 1 in Jalali.
+#[cfg(not(feature = "wasm"))]
+pub const EPOCH_DATE: Date = unsafe { Date::from_y_doy_unchecked(EPOCH_YEAR, EPOCH_DOY) };
+
 /// The equivalent of year zero in this calendar (-1).
 ///
 /// This is a common choice, consult Wikipedia on year 0.
