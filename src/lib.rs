@@ -665,7 +665,7 @@ impl Date {
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
     #[must_use]
     pub fn set_doy(&mut self, doy: Doy) -> bool {
-        if doy > self.max_doy() && doy < 1 {
+        if !is_valid_doy(self.y(), doy) {
             return false;
         }
 
@@ -928,6 +928,22 @@ mod tests {
         assert_eq!(v.doy(), 187);
         assert_eq!(v, Date { y: 1350, doy: 187 });
         assert_eq!(v, unsafe { Date::from_ymd_unchecked(1350, 7, 1) });
+    }
+
+    #[test]
+    fn test_set_doy_leap_for_leap() {
+        let mut d = Date { y: 1403, doy: 365 };
+        assert!(d.is_leap_year());
+        assert!(d.set_doy(366));
+        assert!(d.doy() == 366);
+    }
+
+    #[test]
+    fn test_set_doy_leap_for_non_leap() {
+        let mut d = Date { y: 1404, doy: 365 };
+        assert!(!d.is_leap_year());
+        assert!(!d.set_doy(366));
+        assert!(d.doy() == 365);
     }
 
     // Since the library is `cdylib`, Rust doesn't test the snippets in the code, this is a manual
