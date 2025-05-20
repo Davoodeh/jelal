@@ -261,7 +261,8 @@ impl From<Date> for Md {
 ///
 /// Since this struct works by measuring days. Does not concern leap seconds or smaller units.
 ///
-/// This calendar does not have a year 0! Skips over 0 to -1.
+/// This calendar does not have a year 0! Skips over 0 to -1. The minimum and maximum years
+/// representable are the same as [`Year::MIN`] and [`Year::MAX`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "c", repr(C))]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
