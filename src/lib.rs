@@ -571,7 +571,7 @@ impl Date {
     #[cfg_attr(feature = "c", unsafe(export_name = "date_is_leap_year"), fn_attr(extern "C"))]
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
     pub fn is_leap_year(&self) -> bool {
-        is_leap_year(self.y)
+        is_leap_year(self.y())
     }
 
     /// Return the number of days in this year.
@@ -579,7 +579,7 @@ impl Date {
     #[cfg_attr(feature = "c", unsafe(export_name = "date_max_doy"), fn_attr(extern "C"))]
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
     pub fn max_doy(&self) -> Doy {
-        max_doy(self.y)
+        max_doy(self.y())
     }
 
     // setters
