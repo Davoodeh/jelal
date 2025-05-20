@@ -255,9 +255,33 @@ impl Md {
     }
 }
 
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+#[cfg_attr(feature = "py", py_attr(pymethods, staticmethod))]
+impl Md {
+    /// Create a new valid instance (1, 1), when not const-time use [`Default`].
+    #[cfg_attr(feature = "wasm", wasm_bindgen)]
+    #[cfg_attr(feature = "c", unsafe(export_name = "md_default"), fn_attr(extern "C"))]
+    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    pub fn default() -> Self {
+        Self { m: 1, d: 1 }
+    }
+}
+
 impl From<Date> for Md {
     fn from(value: Date) -> Self {
         value.md()
+    }
+}
+
+impl Default for Md {
+    fn default() -> Self {
+        Self::default()
+    }
+}
+
+impl From<(Month, Dom)> for Md {
+    fn from((m, d): (Month, Dom)) -> Self {
+        Self { m, d }
     }
 }
 
