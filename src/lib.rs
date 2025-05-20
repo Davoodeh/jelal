@@ -168,6 +168,15 @@ pub fn max_doy(y: Year) -> Doy {
     }
 }
 
+/// Check if the given day can be a valid day number (ordinal) in the given year.
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+#[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
+#[cfg_attr(feature = "py", pyfunction)]
+#[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+pub fn is_valid_doy(y: Year, doy: Doy) -> bool {
+    doy > 0 && doy < SECOND_HALF_MAX_DOY || (doy == SECOND_HALF_MAX_DOY && is_leap_year(y))
+}
+
 /// A month and day of the month in a sample leap year of Jalali.
 ///
 /// This is basically between a dumb tuple and a basic intermediate struct for languages that do not
@@ -431,6 +440,16 @@ impl Date {
     /// input not just something like 1..=366.
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
     fn shift_d_from_start_y(&mut self, mut d: Day, toward_past: bool) {
+        if d == 0 {
+            return;
+        }
+
+        // set to 1 temporarily not to upset year functions in a leap event
+        // This function overrides the doy so does not matter if the original value is lost
+        if !self.set_doy(1) {
+            unreachable!()
+        }
+
         loop {
             let max_doy = self.max_doy() as Day;
             if d <= max_doy {
@@ -438,6 +457,7 @@ impl Date {
                 break;
             }
             d -= max_doy;
+
             assert!(if toward_past {
                 self.sub_y(1)
             } else {
@@ -582,6 +602,14 @@ impl Date {
         max_doy(self.y())
     }
 
+    /// Check if a given day of year (ordinal) can be a valid day for this year or not.
+    #[cfg_attr(feature = "wasm", wasm_bindgen)]
+    #[cfg_attr(feature = "c", unsafe(export_name = "date_is_valid_doy"), fn_attr(extern "C"))]
+    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    pub fn is_valid_doy(&self) -> bool {
+        is_valid_doy(self.y(), self.doy())
+    }
+
     // setters
 
     /// Set the year of this month and day.
@@ -592,7 +620,7 @@ impl Date {
     pub fn set_y(&mut self, mut y: Year) -> bool {
         Self::ensure_y(&mut y);
 
-        if self.doy == SECOND_HALF_MAX_DOY && !is_leap_year(y) {
+        if !is_valid_doy(y, self.doy()) {
             return false;
         }
 
