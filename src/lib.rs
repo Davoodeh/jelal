@@ -691,6 +691,53 @@ impl Date {
         self.set_y(self.y - y)
     }
 
+    /// Set the date to `m` months before this day.
+    #[cfg_attr(feature = "wasm", wasm_bindgen)]
+    #[cfg_attr(feature = "c", unsafe(export_name = "date_sub_m"), fn_attr(extern "C"))]
+    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[must_use]
+    pub fn sub_m(&mut self, mut m: Month) -> bool {
+        // see add_m variant for an introduction to understanding this function
+        let this_m = self.m();
+        let mut new = Self::from_y(self.y());
+        if this_m <= m {
+            // since doy is 1 this won't panic
+            if !new.add_y(m as Year / 12) {
+                unreachable!()
+            }
+            m = m % 12 + 12;
+        }
+
+        if m != 0 && !new.set_md(this_m - m, self.d()) {
+            return false;
+        }
+
+        *self = new;
+        true
+    }
+
+    /// Set the date to `m` months after this day.
+    #[cfg_attr(feature = "wasm", wasm_bindgen)]
+    #[cfg_attr(feature = "c", unsafe(export_name = "date_add_m"), fn_attr(extern "C"))]
+    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[must_use]
+    pub fn add_m(&mut self, mut m: Month) -> bool {
+        // by creating a new instance, this is essentially atomic... if any setter fails: no change
+        // calcualate the new year and make sure its supported
+        let mut new = Self::from_y(self.y() + m as Year / 12);
+        m %= 12;
+        if m == 0 {
+            m = 12;
+        }
+        // doy is 1 which means the first day of any month if changed and m%12 implies valid m
+        if !new.set_md(m, self.d()) {
+            return false;
+        }
+
+        *self = new;
+        true
+    }
+
     /// Set the date to `d` days before this day.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_sub_d"), fn_attr(extern "C"))]
@@ -943,6 +990,34 @@ mod tests {
         let mut d = Date { y: 1404, doy: 365 };
         assert!(!d.is_leap_year());
         assert!(!d.set_doy(366));
+        assert!(d.doy() == 365);
+    }
+
+    #[test]
+    fn test_add_12_month_leap_invalid() {
+        let mut d = Date::from_ymd(1403, 12, 30).unwrap();
+        assert!(d.y() == 1403);
+        assert!(d.m() == 12);
+        assert!(d.d() == 30);
+        assert!(d.doy() == 366);
+        assert!(!d.add_m(12));
+        assert!(d.y() == 1403);
+        assert!(d.m() == 12);
+        assert!(d.d() == 30);
+        assert!(d.doy() == 366);
+    }
+
+    #[test]
+    fn test_add_12_month_valid() {
+        let mut d = Date::from_ymd(1403, 12, 29).unwrap();
+        assert!(d.y() == 1403);
+        assert!(d.m() == 12);
+        assert!(d.d() == 29);
+        assert!(d.doy() == 365);
+        assert!(d.add_m(12));
+        assert!(d.y() == 1404);
+        assert!(d.m() == 12);
+        assert!(d.d() == 29);
         assert!(d.doy() == 365);
     }
 
