@@ -168,12 +168,10 @@ pub fn max_doy(y: Year) -> Doy {
     }
 }
 
-/// Marks a month and day in Jalali (this is intermediate type for conversions not a date).
+/// A month and day of the month in a sample leap year of Jalali.
 ///
-/// This value is not checked most of the times and is public since how it is used is up to the
-/// developers. In other words, there are no "expected" ways that this should work since it's just a
-/// tuple buffer for FFIs. In the current usage for [`Date`], it is simply a day and month counter
-/// starting from 1.
+/// This is basically between a dumb tuple and a basic intermediate struct for languages that do not
+/// support functions returning tuples.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "c", repr(C))]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
@@ -185,6 +183,9 @@ pub struct Md {
 
 impl Md {
     /// Unwrap the month into the last day of the month for a 0 day.
+    ///
+    /// This is used for mathematical computations and internally. Do not use in creating new
+    /// instances.
     const fn resolve_zero_d(&mut self) {
         if self.d != 0 || self.m == 0 {
             return;
@@ -202,6 +203,9 @@ impl Md {
 #[cfg_attr(feature = "py", pymethods)]
 impl Md {
     /// Tell what day of year is this month and day (reverse of [`Self::from_doy`]).
+    ///
+    /// This will return constant 1 if the initialization of this struct has failed and the values
+    /// are invalid.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "md_to_doy"), fn_attr(extern "C"))]
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
