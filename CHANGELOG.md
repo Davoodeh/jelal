@@ -1,3 +1,23 @@
+# `0.3.0`
+
+## Fix
+
+- days in the second half of the year being calculated incorrectly in `Md`
+- `Date::set_doy` not being strict enough and considering leap years
+- `shift_day` internals not working correctly on occasions
+
+## Change
+
+- the feature invokation so it throws when mutually exclusive features are used
+- all the functions to use explicit `export_name` with struct prefix
+- Md API. It's totally reworked to be more strict
+
+## Add
+
+- `#[must_use]` for setters which may fail
+- implementation of traits like `From` and `Default`
+- [`Date::`]`is_valid_doy` for checking ordinal (day of year) for a given year
+
 # `0.2.0`
 
 ## Change

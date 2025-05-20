@@ -1,6 +1,6 @@
 [package]
 name = "jelal"
-version = "0.2.0"
+version = "0.3.0"
 description = "A minimal Jalali (Persian/Iranian) calendar date convertor"
 edition = "2024"
 rust-version = "1.85" # technically much lower, but aim is for 2024
@@ -31,7 +31,7 @@ lto = true
 opt-level = 3
 
 [dependencies]
-jelal_proc = { version = "0.2.0", path = "./jelal_proc" }
+jelal_proc = { version = "0.3.0", path = "./jelal_proc" }
 
 wasm-bindgen = { version = "0.2.100", optional = true }
 pyo3 = { version = "0.24.2", features = ["multiple-pymethods", "extension-module"], optional = true }
