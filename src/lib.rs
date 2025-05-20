@@ -177,11 +177,54 @@ pub fn max_doy(y: Year) -> Doy {
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 #[cfg_attr(feature = "py", pyclass(get_all))]
 pub struct Md {
-    pub m: Month,
-    pub d: Dom,
+    m: Month,
+    d: Dom,
 }
 
 impl Md {
+    // Construct a new instance but since Option<Self> is not wise to export, keep hidden.
+
+    /// Create an instance if the day exists in the given month (assuming leap year).
+    pub const fn from_md(m: Month, d: Dom) -> Option<Self> {
+        match (m, d) {
+            (1..=12, 1..=30) | (1..=6, 31) => Some(Self { m, d }),
+            _ => None,
+        }
+    }
+
+    /// Create an instance from the day of the year if not larger than a leap year count.
+    pub const fn from_doy(doy: Doy) -> Option<Self> {
+        if doy > SECOND_HALF_MAX_DOY || doy < 1 {
+            return None;
+        }
+
+        Some(unsafe { Self::from_doy_unchecked(doy) })
+    }
+
+    /// [`Self::from_doy`] but with no checks.
+    ///
+    /// # Safety
+    /// - Must be a valid day of year (1..=366).
+    pub const unsafe fn from_doy_unchecked(doy: Doy) -> Self {
+        let mut candidate = match doy {
+            ..=FIRST_HALF_MAX_DOY => Self {
+                m: (doy / FIRST_HALF_MAX_DOM as Doy) as Month,
+                d: (doy % FIRST_HALF_MAX_DOM as Doy) as Dom,
+            },
+            _ => Self {
+                m: ((doy - FIRST_HALF_MAX_DOY) / SECOND_HALF_MAX_DOM as Doy + 6) as Month,
+                d: ((doy - FIRST_HALF_MAX_DOY) % SECOND_HALF_MAX_DOM as Doy) as Dom,
+            },
+        };
+
+        candidate.resolve_zero_d(); // make sure day is not 0
+
+        // (m+1 hint) first month of the year is 1 so if any days are in the new month, add
+        candidate.m += 1;
+
+        candidate
+    }
+
     /// Unwrap the month into the last day of the month for a 0 day.
     ///
     /// This is used for mathematical computations and internally. Do not use in creating new
@@ -202,14 +245,30 @@ impl Md {
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 #[cfg_attr(feature = "py", pymethods)]
 impl Md {
+    /// Getter for the month.
+    #[cfg_attr(feature = "wasm", wasm_bindgen)]
+    #[cfg_attr(feature = "c", unsafe(export_name = "md_m"), fn_attr(extern "C"))]
+    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    pub fn m(&self) -> Dom {
+        self.m
+    }
+
+    /// Getter for the day.
+    #[cfg_attr(feature = "wasm", wasm_bindgen)]
+    #[cfg_attr(feature = "c", unsafe(export_name = "md_d"), fn_attr(extern "C"))]
+    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    pub fn d(&self) -> Dom {
+        self.d
+    }
+
     /// Tell what day of year is this month and day (reverse of [`Self::from_doy`]).
     ///
     /// This will return constant 1 if the initialization of this struct has failed and the values
     /// are invalid.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "md_to_doy"), fn_attr(extern "C"))]
+    #[cfg_attr(feature = "c", unsafe(export_name = "md_doy"), fn_attr(extern "C"))]
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
-    pub fn to_doy(&self) -> Doy {
+    pub fn doy(&self) -> Doy {
         let offset = match self.m as Doy {
             m @ 1..=6 => (m - 1) * FIRST_HALF_MAX_DOM as Doy,
             m @ 7..=12 => (m - 7) * SECOND_HALF_MAX_DOM as Doy + FIRST_HALF_MAX_DOY,
@@ -217,12 +276,38 @@ impl Md {
         };
         offset + self.d as Doy
     }
-}
 
-#[cfg_attr(feature = "wasm", wasm_bindgen)]
-#[cfg_attr(feature = "py", py_attr(pymethods, staticmethod))]
-impl Md {
-    /// Count how many months and days is from the start of the year (reverse of [`Self::to_doy`]).
+    /// Change the month if the day is a valid day in that month (assuming leap year).
+    #[cfg_attr(feature = "wasm", wasm_bindgen)]
+    #[cfg_attr(feature = "c", unsafe(export_name = "md_set_m"), fn_attr(extern "C"))]
+    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[must_use]
+    pub fn set_m(&mut self, m: Month) -> bool {
+        match Self::from_md(m, self.d) {
+            Some(v) => {
+                *self = v;
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// Change the day if the day is a valid day in that month (assuming leap year).
+    #[cfg_attr(feature = "wasm", wasm_bindgen)]
+    #[cfg_attr(feature = "c", unsafe(export_name = "md_set_d"), fn_attr(extern "C"))]
+    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[must_use]
+    pub fn set_d(&mut self, d: Dom) -> bool {
+        match Self::from_md(self.m, d) {
+            Some(v) => {
+                *self = v;
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// Count how many months and days is from the start of the year (reverse of [`Self::doy`]).
     ///
     /// Add a month for each 30/31 days considering month days from the start of the year.
     ///
@@ -231,27 +316,17 @@ impl Md {
     /// This returns the number of months (0 to strictly under 12) that must be added or removed and
     /// the remaining days (0 to strictly under 31).
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "md_from_doy"), fn_attr(extern "C"))]
+    #[cfg_attr(feature = "c", unsafe(export_name = "md_set_doy"), fn_attr(extern "C"))]
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
-    pub fn from_doy(doy: Doy) -> Self {
-        // TODO I'm sure there is a more elegant way to do this
-        let mut candidate = match doy {
-            ..=FIRST_HALF_MAX_DOY => Self {
-                m: (doy / FIRST_HALF_MAX_DOM as Doy) as Month,
-                d: (doy % FIRST_HALF_MAX_DOM as Doy) as Dom,
-            },
-            _ => Self {
-                m: ((doy - FIRST_HALF_MAX_DOY) / SECOND_HALF_MAX_DOM as Doy + 6) as Month,
-                d: ((doy - FIRST_HALF_MAX_DOY) % SECOND_HALF_MAX_DOM as Doy) as Dom,
-            },
-        };
-
-        candidate.resolve_zero_d(); // make sure day is not 0
-
-        // (m+1 hint) first month of the year is 1 so if any days are in the new month, add
-        candidate.m += 1;
-
-        candidate
+    #[must_use]
+    pub fn set_doy(&mut self, doy: Doy) -> bool {
+        match Self::from_doy(doy) {
+            Some(v) => {
+                *self = v;
+                true
+            }
+            None => false,
+        }
     }
 }
 
@@ -415,7 +490,7 @@ impl Date {
     pub unsafe fn from_ymd_unchecked(y: Year, m: Month, d: Dom) -> Self {
         Self {
             y,
-            doy: Md { m, d }.to_doy(),
+            doy: unsafe { Md::from_md(m, d).unwrap_unchecked() }.doy(),
         }
     }
 
@@ -479,7 +554,8 @@ impl Date {
     #[cfg_attr(feature = "c", unsafe(export_name = "date_md"), fn_attr(extern "C"))]
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
     pub fn md(&self) -> Md {
-        Md::from_doy(self.doy())
+        // SAFETY: the day of the year is always valid in this struct
+        unsafe { Md::from_doy_unchecked(self.doy()) }
     }
 
     /// Getter for the day of the year. What day of year it is (0..=365 for 366 max days).
@@ -549,7 +625,10 @@ impl Date {
     #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
     #[must_use]
     pub fn set_md(&mut self, m: Month, d: Dom) -> bool {
-        self.set_doy(Md { m, d }.to_doy())
+        match Md::from_md(m, d) {
+            Some(v) => self.set_doy(v.doy()),
+            None => false,
+        }
     }
 
     /// Set the day of the year if in valid range (1..=366) with respect to leap years.
