@@ -86,7 +86,7 @@ add_custom_target(Doc
 add_custom_target(Cbindgen
     cargo build "${release_flag}" --lib --features=c
     COMMAND rustup default nightly
-    COMMAND cbindgen --crate "${name}" --output "${c_header}" --lang c
+    COMMAND cbindgen --output "${c_header}"
     COMMAND rustup default "${default}"
     BYPRODUCTS "${c_header}"
     WORKING_DIRECTORY "${src}"
