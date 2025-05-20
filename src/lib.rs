@@ -209,7 +209,7 @@ impl Md {
         let offset = match self.m as Doy {
             m @ 1..=6 => (m - 1) * FIRST_HALF_MAX_DOM as Doy,
             m @ 7..=12 => (m - 7) * SECOND_HALF_MAX_DOM as Doy + FIRST_HALF_MAX_DOY,
-            _ => panic!("month larger than 12 and less than 1"),
+            _ => return 1,
         };
         offset + self.d as Doy
     }
