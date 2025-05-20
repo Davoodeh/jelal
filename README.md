@@ -139,8 +139,8 @@ but also `Release` is supported (`-DCMAKE_BUILD_TYPE=Release`).
 Besides Rust utilities like `cargo` and `rustup`, the following are optionally
 required:
 - `Lib`: no further dependencies
-- `Cbindgen`: requires `cbindgen` and a `nightly` since attributes for this tool
-  are behind `cfg_attr` (run `cargo install cbindgen`)
+- `Cbindgen`: requires `cbindgen 0.29.0` and a `nightly` since attributes for
+  this tool are behind `cfg_attr` (run `cargo install cbindgen`)
 - `Wasm32`: `wasm32-unknown-unknown` tuple (run `rustup target add
   wasm32-unknown-unknown`)
 - `WasmPack`: `Wasm32` requirements and also `wasm-pack` (run `cargo install
@@ -181,7 +181,7 @@ conventions in the section ahead in mind while developing.
   `y_doy`, not `ydoy`).
 - Since `CMakeLists.txt` searches `Cargo.toml`, keep it simple, formatted and
   keep each key-value pair on one line with no `.` notation in the name.
-- Do not use any (proc-)macro if not necessary (`bindgen` is here until [PyO3
+- Do not use any (proc-)macro if not necessary (`jelal_proc` is here until [PyO3
   attribute issue](https://github.com/PyO3/pyo3/issues/5125) is resolved)
 - Do not use any type not necessary (extra custom types limited for days and
   else, keep things verbose and primitive)
