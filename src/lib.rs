@@ -231,8 +231,8 @@ impl Md {
                 d: (doy % FIRST_HALF_MAX_DOM as Doy) as Dom,
             },
             _ => Self {
-                m: ((doy - FIRST_HALF_MAX_DOY) / FIRST_HALF_MAX_DOM as Doy + 6) as Month,
-                d: ((doy - FIRST_HALF_MAX_DOY) % FIRST_HALF_MAX_DOM as Doy) as Dom,
+                m: ((doy - FIRST_HALF_MAX_DOY) / SECOND_HALF_MAX_DOM as Doy + 6) as Month,
+                d: ((doy - FIRST_HALF_MAX_DOY) % SECOND_HALF_MAX_DOM as Doy) as Dom,
             },
         };
 
@@ -629,6 +629,22 @@ mod tests {
     /// The not so leap year of 1348, on Dey (10) 11th when Epoch (1970/1/1) starts.
     fn epoch_start() -> Date {
         unsafe { Date::from_ymd_unchecked(1348, 10, 11) }
+    }
+
+    #[test]
+    fn test_md_max() {
+        assert_eq!(Md::from_doy(366).unwrap(), Md { m: 12, d: 30 })
+    }
+
+    #[test]
+    fn test_md_min() {
+        assert_eq!(Md::from_doy(1).unwrap(), Md { m: 1, d: 1 });
+    }
+
+    #[test]
+    fn test_md_default_min() {
+        assert_eq!(Md::from_doy(1).unwrap(), Md { m: 1, d: 1 });
+        assert_eq!(Md::default(), Md { m: 1, d: 1 });
     }
 
     #[test]
