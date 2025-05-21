@@ -25,6 +25,7 @@ use wasm_bindgen::prelude::*;
 #[pymodule]
 fn jelal(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(is_non_leap_correction, m)?)?;
+    m.add_function(wrap_pyfunction!(is_valid_doy, m)?)?;
     m.add_function(wrap_pyfunction!(is_leap_year, m)?)?;
     m.add_function(wrap_pyfunction!(max_doy, m)?)?;
     m.add_class::<Md>()?;

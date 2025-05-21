@@ -1,3 +1,9 @@
+# `0.4.0`
+
+## Fix
+
+- `is_valid_doy` not being available in Python
+
 # `0.3.0`
 
 ## Fix
