@@ -211,6 +211,5 @@ See the CHANGELOG file in the source for the news about each release.
 - Add linting commands to cmake
 - Remove the NON_LEAP_CORRECTION unsupported expression (array) warning in
   cbindgen
-- Implement add_m and sub_m
 - Copy terminology and inner structures from a library like Chrono instead of
   this handmade stuff
