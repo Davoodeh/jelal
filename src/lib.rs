@@ -2,18 +2,16 @@
 #![cfg_attr(not(any(test, feature = "py")), no_main, no_std)]
 #![cfg_attr(feature = "py", allow(unsafe_op_in_unsafe_fn))] // python, staticmethods and unsafe new
 
+#[macro_use]
+#[allow(unused_imports)] // conditionally used
+extern crate jelal_proc;
+
 use core::{
     cmp::Ordering,
     fmt::{Debug, Display},
 };
 
 jelal_proc::forbid_mutual_feature!("wasm", "c", "py");
-
-#[cfg(not(feature = "wasm"))]
-use jelal_proc::fn_attr;
-
-#[cfg(feature = "py")]
-use jelal_proc::py_attr;
 
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
