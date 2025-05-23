@@ -94,14 +94,14 @@ add_custom_target(Cbindgen
     COMMAND_EXPAND_LISTS)
 
 add_custom_target(Wasm32
-    cargo build "${release_flag}" --lib --target=wasm32-unknown-unknown --features=wasm
+    cargo build "${release_flag}" --lib --target=wasm32-unknown-unknown --no-default-features --features=wasm
     BYPRODUCTS "${target}/wasm32-unknown-unknown/"
     WORKING_DIRECTORY "${src}"
     VERBATIM
     COMMAND_EXPAND_LISTS)
 
 add_custom_target(WasmPack
-    wasm-pack build "${release_flag}" --out-dir "${target}/pkg" --features=wasm
+    wasm-pack build "${release_flag}" --out-dir "${target}/pkg" --no-default-features --features=wasm
     BYPRODUCTS "${target}/pkg/"
     WORKING_DIRECTORY "${src}"
     VERBATIM

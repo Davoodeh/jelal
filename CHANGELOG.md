@@ -6,7 +6,7 @@
 
 ## Add
 
-- `std` feature to have more control over feature selection and configuration
+- `std` and `const` features for more control
 
 # `0.3.0`
 

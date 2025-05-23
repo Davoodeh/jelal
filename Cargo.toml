@@ -15,8 +15,9 @@ name = "jelal"
 crate-type = ["cdylib"]
 
 [features]
-default = []
+default = ["const"]
 std = []
+const = []
 c = []
 wasm = ["dep:wasm-bindgen"]
 py = ["dep:pyo3", "std"]

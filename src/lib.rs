@@ -14,7 +14,7 @@ use core::{
     fmt::{Debug, Display},
 };
 
-jelal_proc::forbid_mutual_feature!("wasm", "c", "py");
+jelal_proc::forbid_mutual_feature!("const", "wasm");
 
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
@@ -80,7 +80,7 @@ pub const EPOCH_MONTH: Month = 10;
 pub const EPOCH_DAY: Day = 11;
 
 /// 1970, 1, 1 in Jalali.
-#[cfg(not(feature = "wasm"))]
+#[cfg(feature = "const")]
 pub const EPOCH_DATE: Date = unsafe { Date::from_y_doy_unchecked(EPOCH_YEAR, EPOCH_DOY) };
 
 /// The equivalent of year zero in this calendar (-1).
@@ -119,13 +119,13 @@ pub const NON_LEAP_CORRECTION: [Year; 78] = [
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 #[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
 #[cfg_attr(feature = "py", pyfunction)]
-#[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+#[cfg_attr(feature = "const", fn_attr(const))]
 pub fn is_non_leap_correction(year: Year) -> bool {
-    #[cfg(feature = "wasm")]
+    #[cfg(not(feature = "const"))]
     {
         NON_LEAP_CORRECTION.binary_search(&year).is_ok()
     }
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(feature = "const")]
     {
         let mut i = 0;
         while i < NON_LEAP_CORRECTION.len() {
@@ -144,7 +144,7 @@ pub fn is_non_leap_correction(year: Year) -> bool {
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 #[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
 #[cfg_attr(feature = "py", pyfunction)]
-#[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+#[cfg_attr(feature = "const", fn_attr(const))]
 pub fn is_leap_year(year: Year) -> bool {
     if year >= NON_LEAP_CORRECTION[0] && is_non_leap_correction(year) {
         return false;
@@ -161,7 +161,7 @@ pub fn is_leap_year(year: Year) -> bool {
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 #[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
 #[cfg_attr(feature = "py", pyfunction)]
-#[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+#[cfg_attr(feature = "const", fn_attr(const))]
 pub fn max_doy(y: Year) -> Doy {
     if is_leap_year(y) {
         366
@@ -174,7 +174,7 @@ pub fn max_doy(y: Year) -> Doy {
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 #[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
 #[cfg_attr(feature = "py", pyfunction)]
-#[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+#[cfg_attr(feature = "const", fn_attr(const))]
 pub fn is_valid_doy(y: Year, doy: Doy) -> bool {
     doy > 0 && doy < SECOND_HALF_MAX_DOY || (doy == SECOND_HALF_MAX_DOY && is_leap_year(y))
 }
@@ -259,7 +259,7 @@ impl Md {
     /// Getter for the month.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "md_m"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn m(&self) -> Dom {
         self.m
     }
@@ -267,7 +267,7 @@ impl Md {
     /// Getter for the day.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "md_d"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn d(&self) -> Dom {
         self.d
     }
@@ -278,7 +278,7 @@ impl Md {
     /// are invalid.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "md_doy"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn doy(&self) -> Doy {
         let offset = match self.m as Doy {
             m @ 1..=6 => (m - 1) * FIRST_HALF_MAX_DOM as Doy,
@@ -291,7 +291,7 @@ impl Md {
     /// Change the month if the day is a valid day in that month (assuming leap year).
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "md_set_m"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     #[must_use]
     pub fn set_m(&mut self, m: Month) -> bool {
         match Self::from_md(m, self.d) {
@@ -306,7 +306,7 @@ impl Md {
     /// Change the day if the day is a valid day in that month (assuming leap year).
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "md_set_d"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     #[must_use]
     pub fn set_d(&mut self, d: Dom) -> bool {
         match Self::from_md(self.m, d) {
@@ -328,7 +328,7 @@ impl Md {
     /// the remaining days (0 to strictly under 31).
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "md_set_doy"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     #[must_use]
     pub fn set_doy(&mut self, doy: Doy) -> bool {
         match Self::from_doy(doy) {
@@ -347,7 +347,7 @@ impl Md {
     /// Create a new valid instance (1, 1), when not const-time use [`Default`].
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "md_default"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn default() -> Self {
         Self { m: 1, d: 1 }
     }
@@ -393,7 +393,7 @@ impl Date {
     /// Create a new year if non-zero and leap day is considered.
     ///
     /// Call [`Self::set_doy`] on a newly created [`Self::from_y`].
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn from_y_doy(y: Year, doy: Doy) -> Option<Self> {
         let mut v = Self::from_y(y);
         if !v.set_doy(doy) {
@@ -405,7 +405,7 @@ impl Date {
     /// Create a new year if non-zero and leap day is considered.
     ///
     /// Call [`Self::set_doy`] on a newly created [`Self::from_y`].
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn from_ymd(y: Year, m: Month, d: Dom) -> Option<Self> {
         let mut v = Self::from_y(y);
         if !v.set_md(m, d) {
@@ -440,7 +440,7 @@ impl Date {
     /// NOTE that this is not simply a [`Self::set_doy`] as that function only edits the day of the
     /// year as the name suggests. This, instead, adds or subtracts past a year and takes any day as
     /// input not just something like 1..=366.
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     fn shift_d_from_start_y(&mut self, mut d: Day, toward_past: bool) {
         if d == 0 {
             return;
@@ -508,7 +508,7 @@ impl Date {
     /// - If 12/30 (366th day of the year, the leap) is selected, the year must be a leap year.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_from_ymd_unchecked"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub unsafe fn from_ymd_unchecked(y: Year, m: Month, d: Dom) -> Self {
         Self {
             y,
@@ -527,7 +527,7 @@ impl Date {
         unsafe(export_name = "date_from_y_doy_unchecked"),
         fn_attr(extern "C"),
     )]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub unsafe fn from_y_doy_unchecked(y: Year, doy: Doy) -> Self {
         Self { y, doy }
     }
@@ -535,7 +535,7 @@ impl Date {
     /// Return the first day of a given year (year 0 is the same as -1).
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_from_y"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn from_y(mut y: Year) -> Self {
         Self::ensure_y(&mut y);
         Self { y, doy: 1 }
@@ -550,7 +550,7 @@ impl Date {
     /// Getter for the year.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_y"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn y(&self) -> Year {
         self.y
     }
@@ -558,7 +558,7 @@ impl Date {
     /// Getter for the month.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_m"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn m(&self) -> Dom {
         self.md().m
     }
@@ -566,7 +566,7 @@ impl Date {
     /// Getter for the day.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_d"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn d(&self) -> Dom {
         self.md().d
     }
@@ -574,7 +574,7 @@ impl Date {
     /// Getter for the day and month.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_md"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn md(&self) -> Md {
         // SAFETY: the day of the year is always valid in this struct
         unsafe { Md::from_doy_unchecked(self.doy()) }
@@ -583,7 +583,7 @@ impl Date {
     /// Getter for the day of the year. What day of year it is (0..=365 for 366 max days).
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_doy"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn doy(&self) -> Doy {
         self.doy
     }
@@ -591,7 +591,7 @@ impl Date {
     /// Is this year leap (see [`is_leap_year`]).
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_is_leap_year"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn is_leap_year(&self) -> bool {
         is_leap_year(self.y())
     }
@@ -599,7 +599,7 @@ impl Date {
     /// Return the number of days in this year.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_max_doy"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn max_doy(&self) -> Doy {
         max_doy(self.y())
     }
@@ -607,7 +607,7 @@ impl Date {
     /// Check if a given day of year (ordinal) can be a valid day for this year or not.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_is_valid_doy"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn is_valid_doy(&self) -> bool {
         is_valid_doy(self.y(), self.doy())
     }
@@ -617,7 +617,7 @@ impl Date {
     /// Set the year of this month and day.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_set_y"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     #[must_use]
     pub fn set_y(&mut self, mut y: Year) -> bool {
         Self::ensure_y(&mut y);
@@ -634,7 +634,7 @@ impl Date {
     /// Set the month of year to the given number.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_set_m"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     #[must_use]
     pub fn set_m(&mut self, m: Month) -> bool {
         self.set_md(m, self.d())
@@ -643,7 +643,7 @@ impl Date {
     /// Set what day of month it should be.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_set_d"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     #[must_use]
     pub fn set_d(&mut self, d: Dom) -> bool {
         self.set_md(self.m(), d)
@@ -652,7 +652,7 @@ impl Date {
     /// Set the month and day of the year.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_set_md"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     #[must_use]
     pub fn set_md(&mut self, m: Month, d: Dom) -> bool {
         match Md::from_md(m, d) {
@@ -664,7 +664,7 @@ impl Date {
     /// Set the day of the year if in valid range (1..=366) with respect to leap years.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_set_doy"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     #[must_use]
     pub fn set_doy(&mut self, doy: Doy) -> bool {
         if !is_valid_doy(self.y(), doy) {
@@ -678,7 +678,7 @@ impl Date {
     /// Add a year to the calendar.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_add_y"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     #[must_use]
     pub fn add_y(&mut self, y: Year) -> bool {
         self.set_y(self.y + y)
@@ -687,7 +687,7 @@ impl Date {
     /// Add a year to the calendar.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_sub_y"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     #[must_use]
     pub fn sub_y(&mut self, y: Year) -> bool {
         self.set_y(self.y - y)
@@ -696,7 +696,7 @@ impl Date {
     /// Set the date to `m` months before this day.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_sub_m"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     #[must_use]
     pub fn sub_m(&mut self, mut m: Month) -> bool {
         // see add_m variant for an introduction to understanding this function
@@ -721,7 +721,7 @@ impl Date {
     /// Set the date to `m` months after this day.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_add_m"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     #[must_use]
     pub fn add_m(&mut self, mut m: Month) -> bool {
         // by creating a new instance, this is essentially atomic... if any setter fails: no change
@@ -743,7 +743,7 @@ impl Date {
     /// Set the date to `d` days before this day.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_sub_d"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn sub_d(&mut self, d: Day) -> bool {
         let doy = self.doy() as Day;
 
@@ -757,7 +757,7 @@ impl Date {
     /// Set the date to `d` days after this day.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_add_d"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn add_d(&mut self, d: Day) -> bool {
         let doy = self.doy() as Day;
         self.shift_d_from_start_y(doy + d, false);
@@ -767,7 +767,7 @@ impl Date {
     /// Compare two dates and return true if the first is more (later) than the given.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_gt"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn gt(&self, other: &Self) -> bool {
         matches!(self.cmp(other), Ordering::Greater)
     }
@@ -775,7 +775,7 @@ impl Date {
     /// Compare two dates and return true if the first is more (later) than the given or equal.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_gte"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn gte(&self, other: &Self) -> bool {
         matches!(self.cmp(other), Ordering::Equal | Ordering::Greater)
     }
@@ -783,7 +783,7 @@ impl Date {
     /// Compare two dates and return true if the first is less (earlier) than the given.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_lt"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn lt(&self, other: &Self) -> bool {
         matches!(self.cmp(other), Ordering::Less)
     }
@@ -791,7 +791,7 @@ impl Date {
     /// Compare two dates and return true if the first is less (earlier) than the given or equal.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_lte"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn lte(&self, other: &Self) -> bool {
         matches!(self.cmp(other), Ordering::Less | Ordering::Equal)
     }
@@ -804,7 +804,7 @@ impl Date {
     /// Check equality to another, in Rust use [`Eq`] if not in comptime.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_eq"), fn_attr(extern "C"))]
-    #[cfg_attr(not(feature = "wasm"), fn_attr(const))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn eq(&self, other: &Self) -> bool {
         self.y == other.y && self.doy == other.doy
     }
