@@ -16,9 +16,10 @@ crate-type = ["cdylib"]
 
 [features]
 default = []
+std = []
 c = []
 wasm = ["dep:wasm-bindgen"]
-py = ["dep:pyo3"]
+py = ["dep:pyo3", "std"]
 
 [profile.dev]
 panic = "abort"

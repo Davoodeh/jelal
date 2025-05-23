@@ -4,6 +4,10 @@
 
 - `is_valid_doy` not being available in Python
 
+## Add
+
+- `std` feature to have more control over feature selection and configuration
+
 # `0.3.0`
 
 ## Fix

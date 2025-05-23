@@ -1,6 +1,9 @@
 #![doc = include_str!("../README.md")]
-#![cfg_attr(not(any(test, feature = "py")), no_main, no_std)]
+#![cfg_attr(not(test), no_main, no_std)]
 #![cfg_attr(feature = "py", allow(unsafe_op_in_unsafe_fn))] // python, staticmethods and unsafe new
+
+#[cfg(feature = "std")]
+extern crate std;
 
 #[macro_use]
 #[allow(unused_imports)] // conditionally used
@@ -31,7 +34,7 @@ fn jelal(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-#[cfg(all(not(test), not(any(feature = "wasm", feature = "py"))))] // suppress duplicate error
+#[cfg(all(not(test), not(any(feature = "wasm", feature = "std"))))] // suppress duplicate error
 #[panic_handler]
 fn panic_handler(_: &core::panic::PanicInfo) -> ! {
     loop {}
