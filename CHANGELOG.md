@@ -9,6 +9,7 @@
 - `std` and `const` features for more control
 - `Date::epoch` function to provide the Epoch date for unconst envs (like wasm)
 - `Date::from_d_past_epoch` and `Date::from_d_before_epoch`
+- build tests in CMake for all the possible combination of features, docs & test
 
 # `0.3.0`
 

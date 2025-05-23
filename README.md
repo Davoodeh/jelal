@@ -191,6 +191,7 @@ conventions in the section ahead in mind while developing.
   descriptions.
 - Mention the changes in the changelog in the order of "Change", "Remove" and
   "Add".
+- Run `ctest` before committing
 
 #### Versioning
 

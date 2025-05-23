@@ -50,6 +50,8 @@ project("${name}"
     LANGUAGES NONE # no way to compile officially yet
 )
 
+include(CTest)
+
 # Constants
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -120,6 +122,38 @@ add_custom_target(Maturin
 add_custom_target(Everything)
 add_dependencies(Everything Lib Doc Cbindgen Wasm32 WasmPack Maturin)
 
+# Tests
+
+# Create tests for the given features with and without default (also docs/tests)
+function(__add_test_for_features_variants name features)
+    # docs
+    add_test(NAME "${name}Doc"
+        COMMAND cargo doc "--features=${features}")
+    set_property(TEST "${name}Doc"
+        PROPERTY ENVIRONMENT RUSTDOCFLAGS=-Dwarnings)
+    add_test(NAME "${name}DocNoDefaults"
+        COMMAND cargo doc "--features=${features}"
+        --no-default-features)
+    set_property(TEST "${name}DocNoDefaults"
+        PROPERTY ENVIRONMENT RUSTDOCFLAGS=-Dwarnings)
+
+    # tests
+    add_test(NAME "${name}Test"
+        COMMAND cargo test "--features=${features}")
+    add_test(NAME "${name}TestNoDefaults"
+        COMMAND cargo test "--features=${features}"
+        --no-default-features)
+endfunction()
+
+# Create tests for given features and its combination with `std, const` -/+ def
+function(add_test_for_features name features)
+    __add_test_for_features_variants("${name}" "${features}")
+    __add_test_for_features_variants("${name}Std" "std,${features}")
+    __add_test_for_features_variants("${name}Const" "const,${features}")
+    __add_test_for_features_variants("${name}StdConst" "std,const,${features}")
+endfunction()
+
+add_test_for_features(None "")
 # Install
 
 install(FILES
