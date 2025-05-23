@@ -729,7 +729,7 @@ impl Date {
         self.set_y(self.y + y)
     }
 
-    /// Add a year to the calendar.
+    /// Sub a year to the calendar.
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_sub_y"), fn_attr(extern "C"))]
     #[cfg_attr(feature = "const", fn_attr(const))]
