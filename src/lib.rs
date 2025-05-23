@@ -663,6 +663,33 @@ impl Date {
         is_valid_doy(self.y(), self.doy())
     }
 
+    /// Return how many days past since Epoch (0 if its before the Epoch).
+    #[cfg_attr(feature = "wasm", wasm_bindgen)]
+    #[cfg_attr(feature = "c", unsafe(export_name = "date_d_past_epoch"), fn_attr(extern "C"))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
+    pub fn d_past_epoch(&self) -> Day {
+        // TODO make this conditional, if a time library is available, use that instead as it should
+        // be more efficient
+        let last_y = self.y();
+        let mut d: Day = 0;
+
+        // const loop from epoch to the given year
+        let mut current_y = EPOCH_YEAR;
+        while current_y < last_y {
+            d = d.saturating_add(max_doy(current_y) as Day);
+            current_y += 1;
+        }
+
+        let doy = self.doy();
+        if doy >= EPOCH_DOY {
+            d = d.saturating_add((self.doy() - EPOCH_DOY) as Day);
+        } else {
+            d = d.saturating_sub((EPOCH_DOY - self.doy()) as Day);
+        }
+
+        d
+    }
+
     // setters
 
     /// Set the year of this month and day.
@@ -1088,5 +1115,50 @@ mod tests {
     #[test]
     fn test_is_leap_year_min_i32() {
         assert!(!is_leap_year(i32::MIN))
+    }
+
+    #[test]
+    fn test_d_past_epoch() {
+        // past
+        assert_eq!(
+            Date::from_ymd(EPOCH_YEAR - 1, EPOCH_MONTH - 1, EPOCH_DOM - 1)
+                .unwrap()
+                .d_past_epoch(),
+            0
+        );
+        assert_eq!(
+            Date::from_ymd(EPOCH_YEAR, EPOCH_MONTH - 1, EPOCH_DOM - 1)
+                .unwrap()
+                .d_past_epoch(),
+            0
+        );
+        assert_eq!(
+            Date::from_ymd(EPOCH_YEAR, EPOCH_MONTH, EPOCH_DOM - 1)
+                .unwrap()
+                .d_past_epoch(),
+            0
+        );
+        // same
+        assert_eq!(Date::epoch().d_past_epoch(), 0);
+
+        // future
+        assert_eq!(
+            Date::from_ymd(EPOCH_YEAR, EPOCH_MONTH + 1, EPOCH_DOM)
+                .unwrap()
+                .d_past_epoch(),
+            30
+        );
+        assert_eq!(
+            Date::from_ymd(EPOCH_YEAR, 12, 29).unwrap().d_past_epoch(),
+            (365 - EPOCH_DOY) as Day
+        );
+        assert_eq!(
+            Date::from_ymd(EPOCH_YEAR + 1, 1, 1).unwrap().d_past_epoch(),
+            (365 - EPOCH_DOY + 1) as Day
+        );
+        assert_eq!(
+            Date::from_ymd(EPOCH_YEAR + 1, 1, 2).unwrap().d_past_epoch(),
+            (365 - EPOCH_DOY + 2) as Day
+        );
     }
 }
