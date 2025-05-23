@@ -154,6 +154,8 @@ function(add_test_for_features name features)
 endfunction()
 
 add_test_for_features(None "")
+add_test_for_features(Time time)
+
 # Install
 
 install(FILES

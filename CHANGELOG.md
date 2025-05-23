@@ -12,6 +12,7 @@
 - `FromEpochDelta` trait and implementations for `core::time::Duration`,
   `std::time::SystemTime`
 - build tests in CMake for all the possible combination of features, docs & test
+- `time` (crate, not `std`/`core`) support
 
 # `0.3.0`
 

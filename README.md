@@ -10,7 +10,7 @@
 Jelal is a modern and lean Jalali (Persian/Iranian) calendar for developers.
 
 Supported in:
-- Rust
+- Rust (with optional `time` and `std` support)
 - JavaScript/TypeScript
 - Python
 - C

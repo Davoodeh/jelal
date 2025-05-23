@@ -16,11 +16,12 @@ crate-type = ["cdylib"]
 
 [features]
 default = ["const"]
-std = []
+std = ["time?/std"]
 const = []
 c = []
 wasm = ["dep:wasm-bindgen"]
 py = ["dep:pyo3", "std"]
+time = ["dep:time"]
 
 [profile.dev]
 panic = "abort"
@@ -37,3 +38,4 @@ jelal_proc = { version = "0.3.0", path = "./jelal_proc" }
 
 wasm-bindgen = { version = "0.2.100", optional = true }
 pyo3 = { version = "0.24.2", features = ["multiple-pymethods", "extension-module"], optional = true }
+time = { version = "0.3.41", default-features = false, optional = true }

@@ -45,3 +45,41 @@ impl FromEpochDelta for std::time::SystemTime {
         }
     }
 }
+
+#[cfg(feature = "time")]
+impl FromEpochDelta for time::Date {
+    fn saturating_d_diff(&self) -> Day {
+        time::UtcDateTime::new(self.clone(), time::Time::MIDNIGHT).saturating_d_diff()
+    }
+}
+
+#[cfg(feature = "time")]
+impl FromEpochDelta for time::Duration {
+    fn saturating_d_diff(&self) -> Day {
+        let d: i64 = self.whole_days().saturating_abs(); // must return i64
+        d as Day
+    }
+}
+
+#[cfg(feature = "time")]
+impl FromEpochDelta for time::OffsetDateTime {
+    fn saturating_d_diff(&self) -> Day {
+        let sec: i64 = self.unix_timestamp().saturating_abs(); // must return i64
+        sec as Day / 86400
+    }
+}
+
+#[cfg(feature = "time")]
+impl FromEpochDelta for time::PrimitiveDateTime {
+    fn saturating_d_diff(&self) -> Day {
+        self.as_utc().saturating_d_diff()
+    }
+}
+
+#[cfg(feature = "time")]
+impl FromEpochDelta for time::UtcDateTime {
+    fn saturating_d_diff(&self) -> Day {
+        let sec: i64 = self.unix_timestamp().saturating_abs(); // must return i64
+        sec as Day / 86400
+    }
+}
