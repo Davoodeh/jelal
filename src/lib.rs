@@ -81,7 +81,7 @@ pub const EPOCH_DAY: Day = 11;
 
 /// 1970, 1, 1 in Jalali.
 #[cfg(feature = "const")]
-pub const EPOCH_DATE: Date = unsafe { Date::from_y_doy_unchecked(EPOCH_YEAR, EPOCH_DOY) };
+pub const EPOCH_DATE: Date = Date::epoch();
 
 /// The equivalent of year zero in this calendar (-1).
 ///
@@ -539,6 +539,17 @@ impl Date {
     pub fn from_y(mut y: Year) -> Self {
         Self::ensure_y(&mut y);
         Self { y, doy: 1 }
+    }
+
+    /// Return the Epoch date (for unconst environments).
+    #[cfg_attr(feature = "wasm", wasm_bindgen)]
+    #[cfg_attr(feature = "c", unsafe(export_name = "date_epoch"), fn_attr(extern "C"))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
+    pub fn epoch() -> Self {
+        Self {
+            y: EPOCH_YEAR,
+            doy: EPOCH_DOY,
+        }
     }
 }
 

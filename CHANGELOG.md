@@ -7,6 +7,7 @@
 ## Add
 
 - `std` and `const` features for more control
+- `Date::epoch` function to provide the Epoch date for unconst envs (like wasm)
 
 # `0.3.0`
 
