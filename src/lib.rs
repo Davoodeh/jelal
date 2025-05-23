@@ -14,6 +14,10 @@ use core::{
     fmt::{Debug, Display},
 };
 
+mod traits;
+
+pub use traits::*;
+
 jelal_proc::forbid_mutual_feature!("const", "wasm");
 
 #[cfg(feature = "py")]
