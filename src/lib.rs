@@ -159,7 +159,13 @@ pub fn is_leap_year(year: Year) -> bool {
     if year >= NON_LEAP_CORRECTION[0] && is_non_leap_correction(year) {
         return false;
     }
-    if year > NON_LEAP_CORRECTION[0] && is_non_leap_correction(year - 1) {
+
+    // no previous year so assume no
+    let Some(prev) = year.checked_sub(1) else {
+        return false;
+    };
+
+    if year > NON_LEAP_CORRECTION[0] && is_non_leap_correction(prev) {
         return true;
     }
 
@@ -720,22 +726,22 @@ impl Date {
         true
     }
 
-    /// Add a year to the calendar.
+    /// Add a year to the calendar (saturating).
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_add_y"), fn_attr(extern "C"))]
     #[cfg_attr(feature = "const", fn_attr(const))]
     #[must_use]
     pub fn add_y(&mut self, y: Year) -> bool {
-        self.set_y(self.y + y)
+        self.set_y(self.y.saturating_add(y))
     }
 
-    /// Sub a year to the calendar.
+    /// Sub a year to the calendar (saturating).
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_sub_y"), fn_attr(extern "C"))]
     #[cfg_attr(feature = "const", fn_attr(const))]
     #[must_use]
     pub fn sub_y(&mut self, y: Year) -> bool {
-        self.set_y(self.y - y)
+        self.set_y(self.y.saturating_sub(y))
     }
 
     /// Set the date to `m` months before this day.
@@ -755,6 +761,7 @@ impl Date {
             m = m % 12 + 12;
         }
 
+        // `this_m - m` guaranteed not to underflow for the checks above
         if m != 0 && !new.set_md(this_m - m, self.d()) {
             return false;
         }
@@ -763,7 +770,7 @@ impl Date {
         true
     }
 
-    /// Set the date to `m` months after this day.
+    /// Set the date to `m` months after this day (saturating).
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_add_m"), fn_attr(extern "C"))]
     #[cfg_attr(feature = "const", fn_attr(const))]
@@ -771,7 +778,7 @@ impl Date {
     pub fn add_m(&mut self, mut m: Month) -> bool {
         // by creating a new instance, this is essentially atomic... if any setter fails: no change
         // calcualate the new year and make sure its supported
-        let mut new = Self::from_y(self.y() + m as Year / 12);
+        let mut new = Self::from_y(self.y().saturating_add(m as Year / 12));
         m %= 12;
         if m == 0 {
             m = 12;
@@ -799,13 +806,13 @@ impl Date {
         true
     }
 
-    /// Set the date to `d` days after this day.
+    /// Set the date to `d` days after this day (saturating).
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_add_d"), fn_attr(extern "C"))]
     #[cfg_attr(feature = "const", fn_attr(const))]
     pub fn add_d(&mut self, d: Day) -> bool {
         let doy = self.doy() as Day;
-        self.shift_d_from_start_y(doy + d, false);
+        self.shift_d_from_start_y(doy.saturating_add(d), false);
         true
     }
 
@@ -1076,5 +1083,10 @@ mod tests {
         let mut new = fixed_point.clone();
         new.add_d(11);
         assert_eq!((new.y(), new.m(), new.d()), (1404, 2, 24));
+    }
+
+    #[test]
+    fn test_is_leap_year_min_i32() {
+        assert!(!is_leap_year(i32::MIN))
     }
 }
