@@ -131,6 +131,12 @@ pub fn is_non_leap_correction(year: Year) -> bool {
     }
     #[cfg(feature = "const")]
     {
+        if year < NON_LEAP_CORRECTION[0]
+            || year > NON_LEAP_CORRECTION[NON_LEAP_CORRECTION.len() - 1]
+        {
+            return false;
+        }
+
         let mut i = 0;
         while i < NON_LEAP_CORRECTION.len() {
             if NON_LEAP_CORRECTION[i] == year {
