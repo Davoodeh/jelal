@@ -3,6 +3,11 @@
 ## Fix
 
 - `is_valid_doy` not being available in Python
+- `EPOCH_DOM` (previously `EPOCH_DAY`) marked as `Day` instead of `Dom`
+
+## Change
+
+- `EPOCH_DAY` to `EPOCH_DOM`
 
 ## Add
 

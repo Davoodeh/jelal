@@ -81,7 +81,7 @@ pub const EPOCH_DOY: Doy = 287;
 pub const EPOCH_MONTH: Month = 10;
 
 /// The day of month which corresponds to 1970, 1, 1.
-pub const EPOCH_DAY: Day = 11;
+pub const EPOCH_DOM: Dom = 11;
 
 /// 1970, 1, 1 in Jalali.
 #[cfg(feature = "const")]
