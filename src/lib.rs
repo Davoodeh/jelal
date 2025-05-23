@@ -541,6 +541,30 @@ impl Date {
         Self { y, doy: 1 }
     }
 
+    /// Create an instance with given days past the Epoch.
+    #[cfg_attr(feature = "wasm", wasm_bindgen)]
+    #[cfg_attr(feature = "c", unsafe(export_name = "date_from_d_past_epoch"), fn_attr(extern "C"))]
+    #[cfg_attr(feature = "const", fn_attr(const))]
+    pub fn from_d_past_epoch(d: Day) -> Self {
+        let mut epoch = Self::epoch();
+        epoch.add_d(d);
+        epoch
+    }
+
+    /// Create an instance with given days past the Epoch.
+    #[cfg_attr(feature = "wasm", wasm_bindgen)]
+    #[cfg_attr(
+        feature = "c",
+        unsafe(export_name = "date_from_d_before_epoch"),
+        fn_attr(extern "C")
+    )]
+    #[cfg_attr(feature = "const", fn_attr(const))]
+    pub fn from_d_before_epoch(d: Day) -> Self {
+        let mut epoch = Self::epoch();
+        epoch.sub_d(d);
+        epoch
+    }
+
     /// Return the Epoch date (for unconst environments).
     #[cfg_attr(feature = "wasm", wasm_bindgen)]
     #[cfg_attr(feature = "c", unsafe(export_name = "date_epoch"), fn_attr(extern "C"))]
