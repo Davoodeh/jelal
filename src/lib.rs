@@ -48,13 +48,13 @@ fn panic_handler(_: &core::panic::PanicInfo) -> ! {
 pub type Year = i32;
 
 /// Counter for months of a year.
-pub type Month = u8;
+pub type Month = u16;
 
 /// Counter for consecutive days
 pub type Day = u32;
 
 /// Counter for days of a week or month.
-pub type Dom = u8;
+pub type Dom = u16;
 
 /// Counter for days in a year.
 pub type Doy = u16;

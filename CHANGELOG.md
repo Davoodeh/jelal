@@ -8,6 +8,7 @@
 ## Change
 
 - `EPOCH_DAY` to `EPOCH_DOM`
+- `Month` and `Dom` to `u16` (from `u8`) for uniformity
 
 ## Add
 
