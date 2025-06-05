@@ -1,4 +1,8 @@
 language = "C"
+no_includes = true
+header = "/**\n * Automatically created using cbindgen.\n * @repository https://crates.io/crate/jelal\n * @license Licensed dually under MIT or Apache-2.0 (see repository for more)\n */"
+includes = ["stdint.h", "stdbool.h"]
+cpp_compat = true
 
 [parse.expand]
 crates = ["jelal"]

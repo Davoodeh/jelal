@@ -1,12 +1,16 @@
 #![doc = include_str!("../README.md")]
 #![cfg_attr(not(test), no_main, no_std)]
-#![cfg_attr(feature = "py", allow(unsafe_op_in_unsafe_fn))] // python, staticmethods and unsafe new
+
+#[cfg(not(any(test, feature = "std")))] // suppress duplicate error
+#[panic_handler]
+fn panic_handler(_: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
 
 #[cfg(feature = "std")]
 extern crate std;
 
 #[macro_use]
-#[allow(unused_imports)] // conditionally used
 extern crate jelal_proc;
 
 use core::{
@@ -14,898 +18,624 @@ use core::{
     fmt::{Debug, Display},
 };
 
-mod traits;
+#[macro_use]
+mod r#macro;
 
-pub use traits::*;
+mod primitive;
+mod utility;
 
-jelal_proc::forbid_mutual_feature!("const", "wasm");
+#[cfg(feature = "ffi")]
+pub mod ffi;
 
-#[cfg(feature = "py")]
-use pyo3::prelude::*;
+pub use primitive::*;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
+pub use crate::utility::DidSaturate;
 
-#[cfg(feature = "py")]
-#[pymodule]
-fn jelal(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(is_non_leap_correction, m)?)?;
-    m.add_function(wrap_pyfunction!(is_valid_doy, m)?)?;
-    m.add_function(wrap_pyfunction!(is_leap_year, m)?)?;
-    m.add_function(wrap_pyfunction!(max_doy, m)?)?;
-    m.add_class::<Md>()?;
-    m.add_class::<Date>()?;
-    Ok(())
+/// The day of the month and its related month in a leap year.
+#[derive(Debug, Clone, PartialEq, Eq, ConstFieldOrder)]
+pub struct MonthDay {
+    /// The month of the year.
+    #[use_cmp]
+    pub(crate) month: Month,
+    /// The day of the associated month.
+    pub(crate) day: UMonthDay,
 }
 
-#[cfg(all(not(test), not(any(feature = "wasm", feature = "std"))))] // suppress duplicate error
-#[panic_handler]
-fn panic_handler(_: &core::panic::PanicInfo) -> ! {
-    loop {}
-}
+impl MonthDay {
+    /// The minimum possible day, the start of every month.
+    pub const MIN_DAY: UMonthDay = 1;
 
-/// Counter for years.
-pub type Year = i32;
+    /// The maximum day count of the year (for months prior to [`Month::MID`] or start of fall).
+    pub const MAX_DAY: UMonthDay = 31;
 
-/// Counter for months of a year.
-pub type Month = u16;
+    /// The maximum number of days in a month post [`Month::MID`].
+    pub const POST_MID_MAX_DAY: UMonthDay = Self::MAX_DAY - 1;
 
-/// Counter for consecutive days
-pub type Day = u32;
+    /// The maximum of the last month in a non-leap year.
+    pub const NON_LEAP_LAST_MONTH_DAY_MAX: UMonthDay = 29;
 
-/// Counter for days of a week or month.
-pub type Dom = u16;
+    /// The maximum of the last month in a leap year.
+    pub const LEAP_LAST_MONTH_DAY_MAX: UMonthDay = Self::NON_LEAP_LAST_MONTH_DAY_MAX + 1;
 
-/// Counter for days in a year.
-pub type Doy = u16;
+    /// The day of month in Jalali for Unix Epoch.
+    pub const EPOCH_DAY: UMonthDay = 11;
 
-/// End of the first half of the year (6th month).
-pub const FIRST_HALF_MAX_DOY: Doy = 186;
-
-/// End of the second half of the year in the longest years.
-pub const SECOND_HALF_MAX_DOY: Doy = 366;
-
-/// Days of month in months up to and including the sixth (last month before new half).
-pub const FIRST_HALF_MAX_DOM: Dom = 31;
-
-/// Days of month in months up to and including the sixth (last month before new half).
-pub const SECOND_HALF_MAX_DOM: Dom = 30;
-
-/// The year 1970.
-pub const EPOCH_YEAR: Year = 1348;
-
-/// What day of [`EPOCH_YEAR`] is 1970, 1, 1.
-pub const EPOCH_DOY: Doy = 287;
-
-/// The month of the first day of 1970.
-pub const EPOCH_MONTH: Month = 10;
-
-/// The day of month which corresponds to 1970, 1, 1.
-pub const EPOCH_DOM: Dom = 11;
-
-/// 1970, 1, 1 in Jalali.
-#[cfg(feature = "const")]
-pub const EPOCH_DATE: Date = Date::epoch();
-
-/// The equivalent of year zero in this calendar (-1).
-///
-/// This is a common choice, consult Wikipedia on year 0.
-pub const Y0_REPLACEMENT: Year = -1;
-
-/// The start of the calendar, based on Wikipedia and other references, year 1.
-pub const Y_START: Year = 1;
-
-/// What is the first day of the year.
-pub const DOY_START: Doy = 1;
-
-/// Years that are not leap while 33-year rule marks them as leap.
-///
-/// "All these years are not leap, while they are considered leap by the 33-year
-/// rule. The year following each of them is leap, but it's considered non-leap
-/// by the 33-year rule. This table has been tested to match the modified
-/// astronomical algorithm based on the 52.5 degrees east meridian from 1178 AP
-/// (an arbitrary date before the Persian calendar was adopted in 1304 AP) to
-/// 3000 AP (an arbitrary date far into the future)."
-///
-/// Taken from
-/// <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L23>
-// TODO make a generalized algorithmic implementation
-// TODO fix cbindgen ignoring this
-pub const NON_LEAP_CORRECTION: [Year; 78] = [
-    1502, 1601, 1634, 1667, 1700, 1733, 1766, 1799, 1832, 1865, 1898, 1931, 1964, 1997, 2030, 2059,
-    2063, 2096, 2129, 2158, 2162, 2191, 2195, 2224, 2228, 2257, 2261, 2290, 2294, 2323, 2327, 2356,
-    2360, 2389, 2393, 2422, 2426, 2455, 2459, 2488, 2492, 2521, 2525, 2554, 2558, 2587, 2591, 2620,
-    2624, 2653, 2657, 2686, 2690, 2719, 2723, 2748, 2752, 2756, 2781, 2785, 2789, 2818, 2822, 2847,
-    2851, 2855, 2880, 2884, 2888, 2913, 2917, 2921, 2946, 2950, 2954, 2979, 2983, 2987,
-];
-
-/// A search into [`NON_LEAP_CORRECTION`].
-#[cfg_attr(feature = "wasm", wasm_bindgen)]
-#[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
-#[cfg_attr(feature = "py", pyfunction)]
-#[cfg_attr(feature = "const", fn_attr(const))]
-pub fn is_non_leap_correction(year: Year) -> bool {
-    #[cfg(not(feature = "const"))]
-    {
-        NON_LEAP_CORRECTION.binary_search(&year).is_ok()
-    }
-    #[cfg(feature = "const")]
-    {
-        if year < NON_LEAP_CORRECTION[0]
-            || year > NON_LEAP_CORRECTION[NON_LEAP_CORRECTION.len() - 1]
-        {
-            return false;
-        }
-
-        let mut i = 0;
-        while i < NON_LEAP_CORRECTION.len() {
-            if NON_LEAP_CORRECTION[i] == year {
-                return true;
-            }
-            i += 1;
-        }
-        false
-    }
-}
-
-/// Calculated using the 33-year rule
-///
-/// Taken from <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L161C1-L173C2>
-#[cfg_attr(feature = "wasm", wasm_bindgen)]
-#[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
-#[cfg_attr(feature = "py", pyfunction)]
-#[cfg_attr(feature = "const", fn_attr(const))]
-pub fn is_leap_year(year: Year) -> bool {
-    if year >= NON_LEAP_CORRECTION[0] && is_non_leap_correction(year) {
-        return false;
-    }
-
-    // no previous year so assume no
-    let Some(prev) = year.checked_sub(1) else {
-        return false;
+    /// The minimum valid this inner type, everything saturates to this if less.
+    pub const MIN: Self = Self {
+        month: Month::MIN,
+        day: Self::MIN_DAY,
     };
 
-    if year > NON_LEAP_CORRECTION[0] && is_non_leap_correction(prev) {
-        return true;
-    }
+    /// The maxmium valid this inner type, everything saturates to this if greater.
+    pub const MAX: Self = Self {
+        month: Month::MAX,
+        day: Self::LEAP_LAST_MONTH_DAY_MAX,
+    };
 
-    let year = year as i64; // why?
-    (25 * year + 11).rem_euclid(33) < 8
-}
+    /// Unix Epoch in this format.
+    pub const EPOCH: Self = Self {
+        month: Month::EPOCH,
+        day: Self::EPOCH_DAY,
+    };
 
-/// The number of days in a given year.
-#[cfg_attr(feature = "wasm", wasm_bindgen)]
-#[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
-#[cfg_attr(feature = "py", pyfunction)]
-#[cfg_attr(feature = "const", fn_attr(const))]
-pub fn max_doy(y: Year) -> Doy {
-    if is_leap_year(y) {
-        366
-    } else {
-        365
-    }
-}
-
-/// Check if the given day can be a valid day number (ordinal) in the given year.
-#[cfg_attr(feature = "wasm", wasm_bindgen)]
-#[cfg_attr(feature = "c", unsafe(no_mangle), fn_attr(extern "C"))]
-#[cfg_attr(feature = "py", pyfunction)]
-#[cfg_attr(feature = "const", fn_attr(const))]
-pub fn is_valid_doy(y: Year, doy: Doy) -> bool {
-    doy > 0 && doy < SECOND_HALF_MAX_DOY || (doy == SECOND_HALF_MAX_DOY && is_leap_year(y))
-}
-
-/// A month and day of the month in a sample leap year of Jalali.
-///
-/// This is basically between a dumb tuple and a basic intermediate struct for languages that do not
-/// support functions returning tuples.
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "c", repr(C))]
-#[cfg_attr(feature = "wasm", wasm_bindgen)]
-#[cfg_attr(feature = "py", pyclass(get_all))]
-pub struct Md {
-    m: Month,
-    d: Dom,
-}
-
-impl Md {
-    // Construct a new instance but since Option<Self> is not wise to export, keep hidden.
-
-    /// Create an instance if the day exists in the given month (assuming leap year).
-    pub const fn from_md(m: Month, d: Dom) -> Option<Self> {
-        match (m, d) {
-            (1..=12, 1..=30) | (1..=6, 31) => Some(Self { m, d }),
-            _ => None,
-        }
-    }
-
-    /// Create an instance from the day of the year if not larger than a leap year count.
-    pub const fn from_doy(doy: Doy) -> Option<Self> {
-        if doy > SECOND_HALF_MAX_DOY || doy < 1 {
-            return None;
-        }
-
-        Some(unsafe { Self::from_doy_unchecked(doy) })
-    }
-
-    /// [`Self::from_doy`] but with no checks.
-    ///
-    /// # Safety
-    /// - Must be a valid day of year (1..=366).
-    pub const unsafe fn from_doy_unchecked(doy: Doy) -> Self {
-        let mut candidate = match doy {
-            ..=FIRST_HALF_MAX_DOY => Self {
-                m: (doy / FIRST_HALF_MAX_DOM as Doy) as Month,
-                d: (doy % FIRST_HALF_MAX_DOM as Doy) as Dom,
+    /// Create a new valid instance and slightly saturate and modify to fit a valid instance.
+    pub const fn new(month: Month, day: UMonthDay) -> Self {
+        let month_mid_cmp = month.cmp(&Month::MID);
+        Self {
+            month,
+            day: if day < Self::MIN_DAY {
+                Self::MIN_DAY
+            } else if month_mid_cmp.is_lt() && day > Self::MAX_DAY {
+                Self::MAX_DAY
+            } else if month_mid_cmp.is_ge() && day > Self::POST_MID_MAX_DAY {
+                Self::POST_MID_MAX_DAY
+            } else {
+                day
             },
-            _ => Self {
-                m: ((doy - FIRST_HALF_MAX_DOY) / SECOND_HALF_MAX_DOM as Doy + 6) as Month,
-                d: ((doy - FIRST_HALF_MAX_DOY) % SECOND_HALF_MAX_DOM as Doy) as Dom,
-            },
-        };
-
-        candidate.resolve_zero_d(); // make sure day is not 0
-
-        // (m+1 hint) first month of the year is 1 so if any days are in the new month, add
-        candidate.m += 1;
-
-        candidate
+        }
     }
 
-    /// Unwrap the month into the last day of the month for a 0 day.
+    /// Return the ordinal (day of the year) for this month and its day.
+    pub const fn to_ordinal(&self) -> Ordinal {
+        self.month
+            .to_ordinal_assume_zero()
+            .add_strict(self.day as IOrdinal)
+            .result
+    }
+
+    /// Add or sub a value to this month and saturate to the limits.
     ///
-    /// This is used for mathematical computations and internally. Do not use in creating new
-    /// instances.
-    const fn resolve_zero_d(&mut self) {
-        if self.d != 0 || self.m == 0 {
-            return;
+    /// This is exactly as [`Self::add_month_strict`] but returns the value only.
+    pub const fn add_month(self, month: IMonth) -> Self {
+        self.add_month_strict(month).result
+    }
+
+    /// Add or sub a value to the day of this and saturate to the limits.
+    ///
+    /// This is exactly as [`Self::add_day_strict`] but returns the value only.
+    pub const fn add_day(self, day: IMonthDay) -> Self {
+        self.add_day_strict(day).result
+    }
+
+    /// Create a valid month and day (in order) from a valid day of the year.
+    pub const fn from_ordinal(value: Ordinal) -> Self {
+        /// Count how many days are in a month if all the months are the same length.
+        const fn same_length_month_counter<const DAYS_IN_A_MONTH: UMonthDay>(
+            days: UOrdinal,
+        ) -> (UMonth, UMonthDay) {
+            let dom = DAYS_IN_A_MONTH as UOrdinal;
+            // there are two main ways that the month and day may not be valid fails:
+            // 1. Month is 0 meaning doy is below or equal 31 this is handled by the saturating_sub
+            // 2. Day remainder by months is 0 zero (rough example doy%30): in that case this, the
+            //    last month must be decreased by one and the last day of the removed month assumed
+
+            // first month of the year is 1 so if any days are in the new month, add (1+).
+            // in other words months start from 1 and the div results make this a necessary
+            let div = 1 + (days / dom);
+
+            // if no days are left means we are in the last day of month so its not a full div yet
+            match days % dom {
+                0 => (div.saturating_sub(1) as UMonth, dom as UMonthDay),
+                rem => (div as UMonth, rem as UMonthDay),
+            }
         }
-        self.d = if self.m <= 6 {
-            FIRST_HALF_MAX_DOM
+
+        const MID: UOrdinal = Ordinal::MID.0;
+        let ordinal = value.0;
+        let (month, day) = if ordinal < MID {
+            same_length_month_counter::<{ Self::MAX_DAY }>(ordinal)
         } else {
-            SECOND_HALF_MAX_DOM
+            let (div, rem) =
+                same_length_month_counter::<{ Self::POST_MID_MAX_DAY }>(ordinal - (MID - 1));
+            (div + 6, rem)
         };
-        self.m -= 1;
-    }
-}
 
-#[cfg_attr(feature = "wasm", wasm_bindgen)]
-#[cfg_attr(feature = "py", pymethods)]
-impl Md {
-    /// Getter for the month.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "md_m"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn m(&self) -> Dom {
-        self.m
-    }
-
-    /// Getter for the day.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "md_d"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn d(&self) -> Dom {
-        self.d
-    }
-
-    /// Tell what day of year is this month and day (reverse of [`Self::from_doy`]).
-    ///
-    /// This will return constant 1 if the initialization of this struct has failed and the values
-    /// are invalid.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "md_doy"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn doy(&self) -> Doy {
-        let offset = match self.m as Doy {
-            m @ 1..=6 => (m - 1) * FIRST_HALF_MAX_DOM as Doy,
-            m @ 7..=12 => (m - 7) * SECOND_HALF_MAX_DOM as Doy + FIRST_HALF_MAX_DOY,
-            _ => return 1,
-        };
-        offset + self.d as Doy
-    }
-
-    /// Change the month if the day is a valid day in that month (assuming leap year).
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "md_set_m"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    #[must_use]
-    pub fn set_m(&mut self, m: Month) -> bool {
-        match Self::from_md(m, self.d) {
-            Some(v) => {
-                *self = v;
-                true
-            }
-            None => false,
+        Self {
+            month: Month(month),
+            day,
         }
     }
 
-    /// Change the day if the day is a valid day in that month (assuming leap year).
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "md_set_d"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    #[must_use]
-    pub fn set_d(&mut self, d: Dom) -> bool {
-        match Self::from_md(self.m, d) {
-            Some(v) => {
-                *self = v;
-                true
+    /// Add or sub a value to the month of this and return if modifications to output was required.
+    ///
+    /// This functions returns a boolean which if true, signals that the results of the raw
+    /// calculations would overflow or underflow and saturation occured.
+    pub const fn add_month_strict(self, month: IMonth) -> DidSaturate<Self> {
+        let month = self.month.add_strict(month);
+        let result = Self::new(month.result, self.day);
+        DidSaturate::new(month.did_saturate || self.cmp(&result).is_ne(), result)
+    }
+
+    /// Add or sub a value to the day of this and return if modifications to output was required.
+    ///
+    /// This functions returns a boolean which if true, signals that the results of the raw
+    /// calculations would overflow or underflow and saturation occured.
+    pub const fn add_day_strict(self, day: IMonthDay) -> DidSaturate<Self> {
+        match self.day.checked_add_signed(day) {
+            Some(day) => {
+                let result = Self::new(self.month, day);
+                DidSaturate::new(self.cmp(&result).is_ne(), result)
             }
-            None => false,
+            None => DidSaturate::saturated(Self::new(
+                self.month,
+                if day.is_negative() {
+                    Self::MIN_DAY
+                } else {
+                    Self::MAX_DAY
+                },
+            )),
         }
     }
 
-    /// Count how many months and days is from the start of the year (reverse of [`Self::doy`]).
-    ///
-    /// Add a month for each 30/31 days considering month days from the start of the year.
-    ///
-    /// Inputs must be from (1..=366) to ensure correct calculation.
-    ///
-    /// This returns the number of months (0 to strictly under 12) that must be added or removed and
-    /// the remaining days (0 to strictly under 31).
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "md_set_doy"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    #[must_use]
-    pub fn set_doy(&mut self, doy: Doy) -> bool {
-        match Self::from_doy(doy) {
-            Some(v) => {
-                *self = v;
-                true
-            }
-            None => false,
-        }
+    /// Return the owned types of this value.
+    pub const fn get(&self) -> (Month, UMonthDay) {
+        (self.month, self.day)
+    }
+    /// Return the value of inner `Self::month` for this instance.
+    pub const fn month(&self) -> Month {
+        self.month
+    }
+    /// Return the value of inner `Self::day` for this instance.
+    pub const fn day(&self) -> UMonthDay {
+        self.day
     }
 }
 
-#[cfg_attr(feature = "wasm", wasm_bindgen)]
-#[cfg_attr(feature = "py", py_attr(pymethods, staticmethod))]
-impl Md {
-    /// Create a new valid instance (1, 1), when not const-time use [`Default`].
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "md_default"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn default() -> Self {
-        Self { m: 1, d: 1 }
+impl Ord for MonthDay {
+    fn cmp(&self, other: &Self) -> Ordering {
+        Self::cmp(self, other)
     }
 }
 
-impl From<Date> for Md {
+impl<M, D> From<MonthDay> for (M, D)
+where
+    M: From<Month>,
+    D: From<UMonthDay>,
+{
+    fn from(value: MonthDay) -> Self {
+        (value.month.into(), value.day.into())
+    }
+}
+
+impl From<MonthDay> for Month {
+    fn from(value: MonthDay) -> Self {
+        value.month
+    }
+}
+
+impl From<MonthDay> for UMonthDay {
+    fn from(value: MonthDay) -> Self {
+        value.day
+    }
+}
+
+impl From<MonthDay> for IMonthDay {
+    fn from(value: MonthDay) -> Self {
+        value.day as i8
+    }
+}
+
+impl From<MonthDay> for Ordinal {
+    fn from(value: MonthDay) -> Self {
+        value.to_ordinal()
+    }
+}
+
+impl From<Ordinal> for Month {
+    fn from(value: Ordinal) -> Self {
+        MonthDay::from(value).month()
+    }
+}
+
+impl From<Ordinal> for MonthDay {
+    fn from(value: Ordinal) -> Self {
+        MonthDay::from_ordinal(value)
+    }
+}
+
+impl From<Date> for MonthDay {
     fn from(value: Date) -> Self {
-        value.md()
+        MonthDay::from_ordinal(value.ordinal())
     }
 }
 
-impl Default for Md {
-    fn default() -> Self {
-        Self::default()
+impl<M, D> From<(M, D)> for MonthDay
+where
+    M: Into<Month>,
+    D: Into<UMonthDay>,
+{
+    fn from(value: (M, D)) -> Self {
+        MonthDay::new(value.0.into(), value.1.into())
     }
 }
 
-impl From<(Month, Dom)> for Md {
-    fn from((m, d): (Month, Dom)) -> Self {
-        Self { m, d }
+impl<M, D> From<(M, D)> for Ordinal
+where
+    (M, D): Into<MonthDay>,
+{
+    fn from(value: (M, D)) -> Self {
+        <(M, D) as Into<MonthDay>>::into(value).into()
     }
 }
 
-/// Jalali equivalent of the Date in whatever measures.
+/// A Jalali valid date.
 ///
-/// Since this struct works by measuring days. Does not concern leap seconds or smaller units.
-///
-/// This calendar does not have a year 0! Skips over 0 to -1. The minimum and maximum years
-/// representable are the same as [`Year::MIN`] and [`Year::MAX`].
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "c", repr(C))]
-#[cfg_attr(feature = "wasm", wasm_bindgen)]
-#[cfg_attr(feature = "py", pyclass(get_all))]
+/// See [`Year`] for more information about year count. [`Self::MIN`] to [`Self::MAX`] is the
+/// representable range (not necessarily all correct in leap calculation or conversion). Year 0 is
+/// not a valid year (see [`Year::ZERO_REPLACEMENT`]).
+#[derive(Debug, Clone, PartialEq, Eq, ConstFieldOrder)]
+#[use_cmp]
 pub struct Date {
-    y: Year,
-    doy: Doy,
+    /// The year of this date.
+    pub(crate) year: Year,
+    /// The number of days passed since the start of the year.
+    pub(crate) ordinal: Ordinal,
 }
 
 impl Date {
-    // constructors
-    // Option<Self> is generally bad for FFIs
+    /// The furthest in the past that can be represented with this struct.
+    pub const MIN: Self = Self {
+        year: Year::MIN,
+        ordinal: Ordinal::MIN,
+    };
 
-    /// Create a new year if non-zero and leap day is considered.
-    ///
-    /// Call [`Self::set_doy`] on a newly created [`Self::from_y`].
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn from_y_doy(y: Year, doy: Doy) -> Option<Self> {
-        let mut v = Self::from_y(y);
-        if !v.set_doy(doy) {
-            return None;
+    /// The furthest in the future that can be represented with this struct.
+    pub const MAX: Self = Self {
+        year: Year::MAX,
+        ordinal: Ordinal::MAX,
+    };
+
+    /// Unix Epoch in this format (equivalent to Gregorian 1st of January [`MonthDay`], 1970).
+    pub const EPOCH: Self = Self {
+        year: Year::EPOCH,
+        ordinal: Ordinal::EPOCH,
+    };
+
+    /// Create a new Jalali date or slightly change values to be valid.
+    pub const fn new(year: Year, ordinal: Ordinal) -> Self {
+        Self {
+            year,
+            ordinal: if year.max_ordinal().cmp(&ordinal).is_lt() {
+                Ordinal::MAX_NON_LEAP
+            } else {
+                ordinal
+            },
         }
-        Some(v)
     }
 
-    /// Create a new year if non-zero and leap day is considered.
+    /// Add a year to this date and saturate the results at limits.
     ///
-    /// Call [`Self::set_doy`] on a newly created [`Self::from_y`].
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn from_ymd(y: Year, m: Month, d: Dom) -> Option<Self> {
-        let mut v = Self::from_y(y);
-        if !v.set_md(m, d) {
-            return None;
-        }
-        Some(v)
+    /// This is exactly as [`Self::add_year_strict`] but returns the value only.
+    pub const fn add_year(self, year: IYear) -> Self {
+        self.add_year_strict(year).result
     }
 
-    // modifiers
-
-    /// Ensure year is safe and correct if an operation is done.
+    /// Add a ordinal to this date and saturate the results at limits.
     ///
-    /// This is private since it should be impossible to create an invalid year.
-    const fn ensure_y(y: &mut Year) {
-        if *y == 0 {
-            *y = Y0_REPLACEMENT
-        }
+    /// This is exactly as [`Self::add_ordinal_strict`] but returns the value only.
+    pub const fn add_ordinal(self, ordinal: IOrdinal) -> Self {
+        self.add_ordinal_strict(ordinal).result
+    }
+
+    /// Add a month count to this date and saturate the results at limits.
+    ///
+    /// This is exactly as [`Self::add_month_strict`] but returns the value only.
+    pub const fn add_month(self, month: IMonth) -> Self {
+        self.add_month_strict(month).result
+    }
+
+    /// Add this many consecutive months to this date.
+    ///
+    /// This is exactly as [`Self::add_months_strict`] but returns the value only.
+    pub const fn add_months(self, months: IDayDiff) -> Self {
+        self.add_months_strict(months).result
+    }
+
+    /// Add or remove the given number of consecutive days to this date.
+    ///
+    /// This is exactly as [`Self::add_days_strict`] but returns the value only.
+    pub const fn add_days(self, days: IDayDiff) -> Self {
+        self.add_days_strict(days).result
+    }
+
+    /// Return how many days on this date will result to the given destination.
+    ///
+    /// This is exactly as [`Self::diff_as_days_strict`] but returns the value only.
+    pub const fn diff_as_days(&self, other: Self) -> IDayDiff {
+        self.diff_as_days_strict(other).result
+    }
+
+    /// Return how many days has passed since or is yet to reach [`Self::EPOCH`].
+    ///
+    /// This is exactly as [`Self::diff_epoch_strict`] but returns the value only.
+    pub const fn diff_epoch(&self) -> IDayDiff {
+        self.diff_epoch_strict().result
+    }
+
+    /// Add a year to this date and return if the values could not be produced normally.
+    ///
+    /// See the inner [`Year::add_strict`] and [`Ordinal::add_strict`].
+    pub const fn add_year_strict(self, year: IYear) -> DidSaturate<Self> {
+        let year = self.year.add_strict(year);
+        let result = Self::new(year.result, self.ordinal);
+        DidSaturate::new(year.did_saturate || self.cmp(&result).is_ne(), result)
+    }
+
+    /// Add a ordinal to this date and return if the values could not be produced normally.
+    ///
+    /// This is the same as adding two ordinals. Adding an ordinal (day of year)  to another will
+    /// saturate at year boundaries and do not exceed to the next year. This function will not pass
+    /// through year boundaries. Use [`Self::add_days_strict`] to pass into the next or previous
+    /// year.
+    ///
+    /// See the inner [`Year::add_strict`] and [`Ordinal::add_strict`].
+    pub const fn add_ordinal_strict(self, ordinal: IOrdinal) -> DidSaturate<Self> {
+        let ordinal = self.ordinal.add_strict(ordinal);
+        let result = Self::new(self.year, ordinal.result);
+        DidSaturate::new(ordinal.did_saturate || self.cmp(&result).is_ne(), result)
+    }
+
+    /// Add a month count to this date and return if the values could not be produced normally.
+    ///
+    /// This will not pass year boundaries. If you are looking for one that goes through year
+    /// boundaries use [`Self::add_months_strict`].
+    ///
+    /// See the inner [`Year::add_strict`] and [`Ordinal::add_strict`].
+    pub const fn add_month_strict(self, month: IMonth) -> DidSaturate<Self> {
+        let dom = MonthDay::from_ordinal(self.ordinal).add_month_strict(month);
+        let result = Self::new(self.year, dom.result.to_ordinal());
+        DidSaturate::new(dom.did_saturate || self.cmp(&result).is_ne(), result)
+    }
+
+    /// Add or remove a year for each 12 months given returning remainder (leap correct).
+    ///
+    /// This is saturating meaning won't overflow or underflow the year if the day does not exist in
+    /// the new month and will automatically correct.
+    const fn add_months_assume_new_year(self, months: IDayDiff) -> DidSaturate<Self> {
+        let toward_past = months.is_negative();
+        let months: UDayDiff = months.unsigned_abs();
+
+        const MC: UDayDiff = Month::MAX.get() as UDayDiff;
+
+        let (div, rem) = match months % MC {
+            0 => ((months / MC).saturating_sub(1), MC),
+            v => (months / MC, v),
+        };
+
+        // TODO add a test to ensure that (2**(BITS) / 12) < (2**(BITS-1) - 1)
+        // ((2**32 / 12) is less than 2**31 so this the cast always works.)
+
+        let year = self.year.add_strict(if toward_past {
+            -(div as IDayDiff)
+        } else {
+            div as IDayDiff
+        });
+
+        // will definitely not saturate for % properties
+        let ordinal = MonthDay::new(Month::new(rem as UMonth), MonthDay::MIN_DAY).to_ordinal();
+
+        DidSaturate::new(year.did_saturate, Self::new(year.result, ordinal))
+    }
+
+    /// Add this many consecutive months to this date.
+    ///
+    /// This will pass year boundaries. If you are looking for one that stops at year boundaries use
+    /// [`Self::add_month_strict`].
+    pub const fn add_months_strict(self, months: IDayDiff) -> DidSaturate<Self> {
+        let self_month_day = MonthDay::from_ordinal(self.ordinal);
+        let (months, did_saturate) =
+            match months.checked_add(self_month_day.month().get() as IDayDiff) {
+                Some(v) => (v, false),
+                None => (
+                    if months.is_negative() {
+                        IDayDiff::MIN
+                    } else {
+                        IDayDiff::MAX
+                    },
+                    true,
+                ),
+            };
+        let v = self.add_months_assume_new_year(months);
+        let did_saturate = did_saturate || v.did_saturate;
+
+        let v = v
+            .result
+            .add_ordinal_strict((self_month_day.day() - 1) as IOrdinal);
+        DidSaturate::new(did_saturate || v.did_saturate, v.result)
     }
 
     /// Add or remove a year for each 365/366 days given returning remainder (leap correct).
     ///
-    /// Basically add or remove that many days since the start of the given days. In other words,
-    /// means that the doy is discarded when this function is called and the given `d` will be the
-    /// sole determinator of the new day of the year. In effect, to preserve current day of year, it
-    /// needs to be added back once a call is done, either by passing it as a plus to the `d` input
-    /// when `toward_past=false` or as a separate call with the previous `doy` in a separate call
-    /// with `toward_past=false`. See [`Self::add_d`] and [`Self::sub_d`] for both examples.
-    ///
-    /// `toward_past` does not only sign the year difference returned, it also effects how leaps are
-    /// calculated and is necessary to be set correctly for a correct answer.
-    ///
-    /// NOTE that this is not simply a [`Self::set_doy`] as that function only edits the day of the
-    /// year as the name suggests. This, instead, adds or subtracts past a year and takes any day as
-    /// input not just something like 1..=366.
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    fn shift_d_from_start_y(&mut self, mut d: Day, toward_past: bool) {
-        if d == 0 {
-            return;
-        }
-
-        // set to 1 temporarily not to upset year functions in a leap event
-        // This function overrides the doy so does not matter if the original value is lost
-        if !self.set_doy(1) {
-            unreachable!()
-        }
+    /// This is saturating meaning won't overflow or underflow the year if excessive days are
+    /// removed or added.
+    const fn add_days_assume_new_year(mut self, days: IDayDiff) -> DidSaturate<Self> {
+        let toward_past = days.is_negative();
+        let step_year_diff = if toward_past { -1 } else { 1 };
+        let mut days: UDayDiff = days.unsigned_abs();
 
         loop {
-            let max_doy = self.max_doy() as Day;
-            if d <= max_doy {
-                assert!(self.set_doy(d as Doy));
-                break;
+            let max_doy = self.year.max_ordinal();
+
+            if days <= max_doy.get() as UDayDiff {
+                self.ordinal = Ordinal::new(days as UOrdinal); // ensure no 0, it might be here
+                return DidSaturate::not_saturated(self);
             }
-            d -= max_doy;
+            // won't be zero since it's strictly larger than max_doy or would have returned
+            days -= max_doy.get() as u32;
 
-            assert!(if toward_past {
-                self.sub_y(1)
-            } else {
-                self.add_y(1)
-            });
-        }
-    }
-
-    // const trait impls
-    //
-    // Do not use getters in these codes so they break on change of inner structures which
-    // forces the implementor to revise the code
-
-    /// Compare to another, in Rust use [`Ord`] if not in comptime.
-    // not to export the ordering type cross boundaries this is not exported
-    pub const fn cmp(&self, other: &Self) -> Ordering {
-        if self.y < other.y {
-            return Ordering::Less;
-        }
-        if self.y > other.y {
-            return Ordering::Greater;
-        }
-
-        // year is equal this far so check doy
-
-        if self.doy < other.doy {
-            return Ordering::Less;
-        }
-        if self.doy > other.doy {
-            return Ordering::Greater;
-        }
-
-        Ordering::Equal
-    }
-}
-
-#[cfg_attr(feature = "wasm", wasm_bindgen)]
-#[cfg_attr(feature = "py", py_attr(pymethods, staticmethod))]
-impl Date {
-    // unchecked constructors
-
-    /// Create a new year with unchecked arguments (non-zero year, month and day).
-    ///
-    /// # Safety
-    /// - Year must not be 0, if so, replace it with [`Y0_REPLACEMENT`] (-1)
-    /// - If 12/30 (366th day of the year, the leap) is selected, the year must be a leap year.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_from_ymd_unchecked"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub unsafe fn from_ymd_unchecked(y: Year, m: Month, d: Dom) -> Self {
-        Self {
-            y,
-            doy: unsafe { Md::from_md(m, d).unwrap_unchecked() }.doy(),
-        }
-    }
-
-    /// Create a new year with unchecked arguments (non-zero year, month and day).
-    ///
-    /// # Safety
-    /// - Year must not be 0, if so, replace it with [`Y0_REPLACEMENT`] (-1)
-    /// - If 12/30 (366th day of the year, the leap) is selected, the year must be a leap year.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(
-        feature = "c",
-        unsafe(export_name = "date_from_y_doy_unchecked"),
-        fn_attr(extern "C"),
-    )]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub unsafe fn from_y_doy_unchecked(y: Year, doy: Doy) -> Self {
-        Self { y, doy }
-    }
-
-    /// Return the first day of a given year (year 0 is the same as -1).
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_from_y"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn from_y(mut y: Year) -> Self {
-        Self::ensure_y(&mut y);
-        Self { y, doy: 1 }
-    }
-
-    /// Create an instance with given days past the Epoch.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_from_d_past_epoch"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn from_d_past_epoch(d: Day) -> Self {
-        let mut epoch = Self::epoch();
-        epoch.add_d(d);
-        epoch
-    }
-
-    /// Create an instance with given days past the Epoch.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(
-        feature = "c",
-        unsafe(export_name = "date_from_d_before_epoch"),
-        fn_attr(extern "C")
-    )]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn from_d_before_epoch(d: Day) -> Self {
-        let mut epoch = Self::epoch();
-        epoch.sub_d(d);
-        epoch
-    }
-
-    /// Return the Epoch date (for unconst environments).
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_epoch"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn epoch() -> Self {
-        Self {
-            y: EPOCH_YEAR,
-            doy: EPOCH_DOY,
-        }
-    }
-}
-
-#[cfg_attr(feature = "wasm", wasm_bindgen)]
-#[cfg_attr(feature = "py", pymethods)]
-impl Date {
-    // getters
-
-    /// Getter for the year.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_y"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn y(&self) -> Year {
-        self.y
-    }
-
-    /// Getter for the month.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_m"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn m(&self) -> Dom {
-        self.md().m
-    }
-
-    /// Getter for the day.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_d"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn d(&self) -> Dom {
-        self.md().d
-    }
-
-    /// Getter for the day and month.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_md"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn md(&self) -> Md {
-        // SAFETY: the day of the year is always valid in this struct
-        unsafe { Md::from_doy_unchecked(self.doy()) }
-    }
-
-    /// Getter for the day of the year. What day of year it is (0..=365 for 366 max days).
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_doy"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn doy(&self) -> Doy {
-        self.doy
-    }
-
-    /// Is this year leap (see [`is_leap_year`]).
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_is_leap_year"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn is_leap_year(&self) -> bool {
-        is_leap_year(self.y())
-    }
-
-    /// Return the number of days in this year.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_max_doy"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn max_doy(&self) -> Doy {
-        max_doy(self.y())
-    }
-
-    /// Check if a given day of year (ordinal) can be a valid day for this year or not.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_is_valid_doy"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn is_valid_doy(&self) -> bool {
-        is_valid_doy(self.y(), self.doy())
-    }
-
-    /// Return how many days past since Epoch (0 if its before the Epoch).
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_d_past_epoch"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn d_past_epoch(&self) -> Day {
-        // TODO make this conditional, if a time library is available, use that instead as it should
-        // be more efficient
-        let last_y = self.y();
-        let mut d: Day = 0;
-
-        // const loop from epoch to the given year
-        let mut current_y = EPOCH_YEAR;
-        while current_y < last_y {
-            d = d.saturating_add(max_doy(current_y) as Day);
-            current_y += 1;
-        }
-
-        let doy = self.doy();
-        if doy >= EPOCH_DOY {
-            d = d.saturating_add((self.doy() - EPOCH_DOY) as Day);
-        } else {
-            d = d.saturating_sub((EPOCH_DOY - self.doy()) as Day);
-        }
-
-        d
-    }
-
-    // setters
-
-    /// Set the year of this month and day.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_set_y"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    #[must_use]
-    pub fn set_y(&mut self, mut y: Year) -> bool {
-        Self::ensure_y(&mut y);
-
-        if !is_valid_doy(y, self.doy()) {
-            return false;
-        }
-
-        self.y = y;
-
-        true
-    }
-
-    /// Set the month of year to the given number.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_set_m"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    #[must_use]
-    pub fn set_m(&mut self, m: Month) -> bool {
-        self.set_md(m, self.d())
-    }
-
-    /// Set what day of month it should be.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_set_d"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    #[must_use]
-    pub fn set_d(&mut self, d: Dom) -> bool {
-        self.set_md(self.m(), d)
-    }
-
-    /// Set the month and day of the year.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_set_md"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    #[must_use]
-    pub fn set_md(&mut self, m: Month, d: Dom) -> bool {
-        match Md::from_md(m, d) {
-            Some(v) => self.set_doy(v.doy()),
-            None => false,
-        }
-    }
-
-    /// Set the day of the year if in valid range (1..=366) with respect to leap years.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_set_doy"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    #[must_use]
-    pub fn set_doy(&mut self, doy: Doy) -> bool {
-        if !is_valid_doy(self.y(), doy) {
-            return false;
-        }
-
-        self.doy = doy;
-        true
-    }
-
-    /// Add a year to the calendar (saturating).
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_add_y"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    #[must_use]
-    pub fn add_y(&mut self, y: Year) -> bool {
-        self.set_y(self.y.saturating_add(y))
-    }
-
-    /// Sub a year to the calendar (saturating).
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_sub_y"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    #[must_use]
-    pub fn sub_y(&mut self, y: Year) -> bool {
-        self.set_y(self.y.saturating_sub(y))
-    }
-
-    /// Set the date to `m` months before this day.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_sub_m"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    #[must_use]
-    pub fn sub_m(&mut self, mut m: Month) -> bool {
-        // see add_m variant for an introduction to understanding this function
-        let this_m = self.m();
-        let mut new = Self::from_y(self.y());
-        if this_m <= m {
-            // since doy is 1 this won't panic
-            if !new.add_y(m as Year / 12) {
-                unreachable!()
+            // add or remove one year in this ugly form until more helpers are added
+            let year = self.year.add_strict(step_year_diff);
+            self.year = year.result;
+            if year.did_saturate {
+                self.ordinal = if toward_past { Ordinal::MIN } else { max_doy };
+                return DidSaturate::saturated(self);
             }
-            m = m % 12 + 12;
+        }
+    }
+
+    /// Add or remove the given number of consecutive days to this date.
+    ///
+    /// This is not the same as adding ordinals. Adding an ordinal (day of year)  to another will
+    /// saturate at year boundaries and do not exceed to the next year. This function will pass
+    /// through year boundaries. Use [`Self::add_ordinal_strict`] for the other functionality.
+    pub const fn add_days_strict(self, days: IDayDiff) -> DidSaturate<Self> {
+        let (days, did_saturate) = match days.checked_add(self.ordinal.0 as IDayDiff) {
+            Some(v) => (v, false),
+            None => (
+                if days.is_negative() {
+                    IDayDiff::MIN
+                } else {
+                    IDayDiff::MAX
+                },
+                true,
+            ),
+        };
+        let v = self.add_days_assume_new_year(days);
+        DidSaturate::new(did_saturate || v.did_saturate, v.result)
+    }
+
+    /// Return how many days on this date will result to the given destination.
+    pub const fn diff_as_days_strict(&self, mut other: Self) -> DidSaturate<IDayDiff> {
+        let toward_past = self.year.cmp(&other.year).is_lt();
+        let year_step = if toward_past { -1 } else { 1 };
+
+        // change the delta by that many years until the years have a difference of one.
+        let mut year_diff: IDayDiff = 0;
+        while self.year.cmp(&other.year).is_ne() {
+            year_diff = match year_diff
+                .checked_add(year_step * (other.year.max_ordinal().get() as IDayDiff))
+            {
+                Some(v) => v,
+                None => {
+                    return DidSaturate::saturated(if toward_past {
+                        IDayDiff::MIN
+                    } else {
+                        IDayDiff::MAX
+                    });
+                }
+            };
+            other.year = other.year.add_strict(year_step).result; // to skip over 0
         }
 
-        // `this_m - m` guaranteed not to underflow for the checks above
-        if m != 0 && !new.set_md(this_m - m, self.d()) {
-            return false;
-        }
-
-        *self = new;
-        true
+        let ordinal_diff = self.ordinal.get() as IDayDiff - other.ordinal.get() as IDayDiff;
+        DidSaturate::not_saturated(year_diff + ordinal_diff)
     }
 
-    /// Set the date to `m` months after this day (saturating).
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_add_m"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    #[must_use]
-    pub fn add_m(&mut self, mut m: Month) -> bool {
-        // by creating a new instance, this is essentially atomic... if any setter fails: no change
-        // calcualate the new year and make sure its supported
-        let mut new = Self::from_y(self.y().saturating_add(m as Year / 12));
-        m %= 12;
-        if m == 0 {
-            m = 12;
-        }
-        // doy is 1 which means the first day of any month if changed and m%12 implies valid m
-        if !new.set_md(m, self.d()) {
-            return false;
-        }
-
-        *self = new;
-        true
+    /// Return how many days has passed since or is yet to reach [`Self::EPOCH`].
+    pub const fn diff_epoch_strict(&self) -> DidSaturate<IDayDiff> {
+        self.diff_as_days_strict(Self::EPOCH)
     }
 
-    /// Set the date to `d` days before this day.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_sub_d"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn sub_d(&mut self, d: Day) -> bool {
-        let doy = self.doy() as Day;
-
-        // since the algorithm is crude and having doy <= d makes an overflow (probably),
-        // first we need to add the d and then add back the doy which acts like a carry.
-        self.shift_d_from_start_y(d, true);
-        self.shift_d_from_start_y(doy, false);
-        true
+    /// Return the owned types of this value.
+    pub const fn get(&self) -> (Year, Ordinal) {
+        (self.year, self.ordinal)
     }
-
-    /// Set the date to `d` days after this day (saturating).
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_add_d"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn add_d(&mut self, d: Day) -> bool {
-        let doy = self.doy() as Day;
-        self.shift_d_from_start_y(doy.saturating_add(d), false);
-        true
+    /// Return the value of inner `Self::year` for this instance.
+    pub const fn year(&self) -> Year {
+        self.year
     }
-
-    /// Compare two dates and return true if the first is more (later) than the given.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_gt"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn gt(&self, other: &Self) -> bool {
-        matches!(self.cmp(other), Ordering::Greater)
-    }
-
-    /// Compare two dates and return true if the first is more (later) than the given or equal.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_gte"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn gte(&self, other: &Self) -> bool {
-        matches!(self.cmp(other), Ordering::Equal | Ordering::Greater)
-    }
-
-    /// Compare two dates and return true if the first is less (earlier) than the given.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_lt"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn lt(&self, other: &Self) -> bool {
-        matches!(self.cmp(other), Ordering::Less)
-    }
-
-    /// Compare two dates and return true if the first is less (earlier) than the given or equal.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_lte"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn lte(&self, other: &Self) -> bool {
-        matches!(self.cmp(other), Ordering::Less | Ordering::Equal)
-    }
-
-    // const trait impls
-    //
-    // Do not use getters in these codes so they break on change of inner structures which
-    // forces the implementor to revise the code
-
-    /// Check equality to another, in Rust use [`Eq`] if not in comptime.
-    #[cfg_attr(feature = "wasm", wasm_bindgen)]
-    #[cfg_attr(feature = "c", unsafe(export_name = "date_eq"), fn_attr(extern "C"))]
-    #[cfg_attr(feature = "const", fn_attr(const))]
-    pub fn eq(&self, other: &Self) -> bool {
-        self.y == other.y && self.doy == other.doy
-    }
-}
-
-impl Display for Date {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let Md { m, d } = self.md();
-        let y = self.y();
-        write!(f, "{}/{}/{}", y, m, d)
-    }
-}
-
-impl PartialOrd for Date {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(Ord::cmp(self, other))
+    /// Return the value of inner `Self::ordinal` for this instance.
+    pub const fn ordinal(&self) -> Ordinal {
+        self.ordinal
     }
 }
 
 impl Ord for Date {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.cmp(other)
+        Self::cmp(self, other)
+    }
+}
+
+impl<Y, O> From<Date> for (Y, O)
+where
+    Y: From<Year>,
+    O: From<Ordinal>,
+{
+    fn from(value: Date) -> Self {
+        (value.year.into(), value.ordinal.into())
+    }
+}
+
+impl From<Date> for Year {
+    fn from(value: Date) -> Self {
+        value.year
+    }
+}
+
+impl From<Date> for Ordinal {
+    fn from(value: Date) -> Self {
+        value.ordinal
+    }
+}
+
+impl From<Year> for Date {
+    fn from(value: Year) -> Self {
+        Date::new(value, Ordinal::MIN)
+    }
+}
+
+impl From<IYear> for Date {
+    fn from(value: IYear) -> Self {
+        Date::from(Year::from(value))
+    }
+}
+
+impl<Y, M> From<(Y, M)> for Date
+where
+    Y: Into<Year>,
+    M: Into<Ordinal>,
+{
+    fn from(value: (Y, M)) -> Self {
+        Date::new(value.0.into(), value.1.into())
+    }
+}
+
+impl<Y, M, D> From<(Y, M, D)> for Date
+where
+    Y: Into<Year>,
+    (M, D): Into<Ordinal>,
+{
+    fn from(value: (Y, M, D)) -> Self {
+        Date::new(value.0.into(), (value.1, value.2).into())
+    }
+}
+
+impl<Y, M, D> From<Date> for (Y, M, D)
+where
+    Y: From<Year>,
+    (M, D): From<MonthDay>,
+{
+    fn from(value: Date) -> Self {
+        let (year, md): (Year, MonthDay) = value.into();
+        let (m, d) = md.into();
+        (year.into(), m, d)
+    }
+}
+
+impl Display for Date {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let (y, m, d) = Ymd::from(self.clone());
+        write!(f, "{}/{}/{}", y, m, d)
     }
 }
 
@@ -913,40 +643,28 @@ impl Ord for Date {
 mod tests {
     use super::*;
 
-    /// The not so leap year of 1348, on Dey (10) 11th when Epoch (1970/1/1) starts.
-    fn epoch_start() -> Date {
-        unsafe { Date::from_ymd_unchecked(1348, 10, 11) }
+    #[test]
+    fn test_month_day_max() {
+        let from_ordinal: MonthDay = Ordinal::MAX.into();
+        assert_eq!(from_ordinal.day(), MonthDay::LEAP_LAST_MONTH_DAY_MAX);
+        assert_eq!(from_ordinal.month(), Month::MAX);
+        assert_eq!(from_ordinal, MonthDay::MAX);
     }
 
     #[test]
-    fn test_md_max() {
-        assert_eq!(Md::from_doy(366).unwrap(), Md { m: 12, d: 30 })
-    }
-
-    #[test]
-    fn test_md_min() {
-        assert_eq!(Md::from_doy(1).unwrap(), Md { m: 1, d: 1 });
-    }
-
-    #[test]
-    fn test_md_default_min() {
-        assert_eq!(Md::from_doy(1).unwrap(), Md { m: 1, d: 1 });
-        assert_eq!(Md::default(), Md { m: 1, d: 1 });
+    fn test_month_day_min() {
+        let from_ordinal: MonthDay = Ordinal::MIN.into();
+        assert_eq!(from_ordinal.day(), MonthDay::MIN_DAY);
+        assert_eq!(from_ordinal.month(), Month::MIN);
+        assert_eq!(from_ordinal, MonthDay::MIN);
     }
 
     #[test]
     fn test_leap_aligns_with_wikipedia_list_of_33() {
-        const LIST: [Year; 71] = [
-            1210, 1214, 1218, 1222, 1226, 1230, 1234, 1238, 1243, 1247, 1251, 1255, 1259, 1263,
-            1267, 1271, 1276, 1280, 1284, 1288, 1292, 1296, 1300, 1304, 1309, 1313, 1317, 1321,
-            1325, 1329, 1333, 1337, 1342, 1346, 1350, 1354, 1358, 1362, 1366, 1370, 1375, 1379,
-            1383, 1387, 1391, 1395, 1399, 1403, 1408, 1412, 1416, 1420, 1424, 1428, 1432, 1436,
-            1441, 1445, 1449, 1453, 1457, 1461, 1465, 1469, 1474, 1478, 1482, 1486, 1490, 1494,
-            1498,
-        ];
         for i in 1210..=1500 {
-            let is_leap = is_leap_year(i);
-            let in_list = LIST.binary_search(&i).is_ok();
+            let year = Year::from(i);
+            let is_leap = year.is_leap();
+            let in_list = Year::LEAPS_1210_TO_1500.binary_search(&year).is_ok();
             assert!(
                 if is_leap { in_list } else { !in_list },
                 "year {} is miscalculated (guessed as leap: {}, is actually leap: {})",
@@ -958,28 +676,47 @@ mod tests {
     }
 
     #[test]
-    fn test_unix_doy_same_as_const() {
-        assert_eq!(epoch_start().doy(), 287)
+    fn test_ordinal_first_day_of_calendar() {
+        assert_eq!(Date::from((1, 1, 1)).ordinal(), Ordinal::MIN);
     }
 
     #[test]
-    fn test_doy_first_day_of_year() {
-        assert_eq!(unsafe { Date::from_ymd_unchecked(1, 1, 1) }.doy(), 1);
+    fn test_ordinal_365_day_of_first_year() {
+        assert_eq!(Date::from((1, 12, 29)).ordinal(), Ordinal::MAX_NON_LEAP);
     }
 
     #[test]
-    fn test_doy_365_day_of_year() {
-        assert_eq!(unsafe { Date::from_ymd_unchecked(1, 12, 29) }.doy(), 365);
+    fn test_ordinal_from_unsuffixed_int() {
+        assert_eq!(Ordinal::from(1).get(), 1);
+    }
+
+    #[test]
+    fn test_month_day_from_ordinal() {
+        for m in 1..=6 {
+            for d in 1..=31 {
+                assert_eq!(
+                    Ordinal::from(MonthDay::from((m, d))),
+                    Ordinal::from((m - 1) * 31 + d as i32),
+                );
+            }
+        }
+
+        for m in 7..=12 {
+            for d in 1..=30 {
+                assert_eq!(
+                    Ordinal::from(MonthDay::from((m, d))),
+                    Ordinal::from((Ordinal::MID - 1i16) + (m - 7) as i16 * 30 + d as i16),
+                );
+            }
+        }
     }
 
     #[test]
     fn test_add_doy_epoch_1348() {
-        let test = |offset: Day, (y, m, d): (Year, Month, Dom)| {
-            let mut v = epoch_start();
-            v.add_d(offset);
-            assert_eq!(v.doy() as Day, (287 + offset));
-            assert_eq!(v.doy as Day, (287 + offset));
-            assert_eq!(v, unsafe { Date::from_ymd_unchecked(y, m, d) });
+        let test = |offset: IDayDiff, (y, m, d): IntYmd| {
+            let v = Date::EPOCH.add_days_strict(offset).result;
+            assert_eq!(v.ordinal().get() as IDayDiff, (287 + offset));
+            assert_eq!(v, Date::from((y, m, d)));
         };
 
         test(0, (1348, 10, 11));
@@ -998,12 +735,10 @@ mod tests {
 
     #[test]
     fn test_add_doy_epoch_1349() {
-        let test = |offset: Day, (y, m, d): (Year, Month, Dom)| {
-            let mut v = epoch_start();
-            v.add_d(78 + offset);
-            assert_eq!(v.doy() as Day, offset);
-            assert_eq!(v.doy as Day, offset);
-            assert_eq!(v, unsafe { Date::from_ymd_unchecked(y, m, d) });
+        let test = |offset: IDayDiff, (y, m, d): IntYmd| {
+            let v = Date::EPOCH.add_days_strict(78 + offset).result;
+            assert_eq!(v.ordinal().get() as IDayDiff, offset);
+            assert_eq!(v, Date::from((y, m, d)));
         };
 
         test(1, (1349, 1, 1));
@@ -1033,132 +768,227 @@ mod tests {
     }
 
     #[test]
+    fn test_add_ordinal_saturates_while_days_doesnt() {
+        let year = Year::from(1350);
+        let v = Date::from(year);
+        for i in 0..year.max_ordinal().get() {
+            // - if the last value is included with the starting day will result in 365+1
+            // - small values so the `as` won't do anything unexpected
+            assert_eq!(
+                v.clone().add_ordinal_strict(i as IOrdinal).result,
+                v.clone().add_days_strict(i as IDayDiff).result,
+            );
+        }
+
+        // stays in this very year
+        assert_eq!(
+            v.clone().add_ordinal_strict(366).result,
+            Date::from((1350, year.max_ordinal())),
+        );
+
+        // goes to the next year
+        assert_eq!(
+            v.clone().add_days_strict(366).result,
+            Date::from((1351, 366 - (year.max_ordinal().get() - 1))),
+        );
+    }
+
+    #[test]
     fn test_add_186_new_year() {
-        let mut v = Date::from_y(1350);
-        assert_eq!(v.doy(), 1);
-        assert_eq!(v, unsafe { Date::from_ymd_unchecked(1350, 1, 1) });
-        assert_eq!(v, Date { y: 1350, doy: 1 });
-        assert_eq!(v.d(), 1);
+        let v = Date::from(1350);
+        assert_eq!(v.ordinal().get(), 1);
+        assert_eq!(v.year().get(), 1350);
+        assert_eq!(v, Date::from((1350, 1, 1)));
 
-        v.add_d(184);
-        assert_eq!(v.doy(), 185);
-        assert_eq!(v, Date { y: 1350, doy: 185 });
-        assert_eq!(v, unsafe { Date::from_ymd_unchecked(1350, 6, 30) });
-        assert_eq!(v.d(), 30);
+        let v = v.add_ordinal_strict(184).result;
+        assert_eq!(v.ordinal().get(), 185);
+        assert_eq!(v, Date::from((1350, 185)).into());
+        assert_eq!(v, Date::from((1350, 6, 30)));
+        assert_eq!(MonthDay::from(v.clone()).day(), 30);
+        assert_eq!(MonthDay::from(v.clone()).month().get(), 6);
 
-        v.add_d(1);
-        assert_eq!(v.doy(), 186);
-        assert_eq!(v, Date { y: 1350, doy: 186 });
-        assert_eq!(v, unsafe { Date::from_ymd_unchecked(1350, 6, 31) });
-        assert_eq!(v.d(), 31);
+        let v = v.add_ordinal_strict(1).result;
+        assert_eq!(v.ordinal().get(), 186);
+        assert_eq!(v, Date::from((1350, 186)));
+        assert_eq!(v, Date::from((1350, 186)).into());
+        assert_eq!(v, Date::from((1350, 6, 31)));
+        assert_eq!(MonthDay::from(v.clone()).day(), 31);
+        assert_eq!(MonthDay::from(v.clone()).month().get(), 6);
 
-        v.add_d(1);
-        assert_eq!(v.doy(), 187);
-        assert_eq!(v, Date { y: 1350, doy: 187 });
-        assert_eq!(v, unsafe { Date::from_ymd_unchecked(1350, 7, 1) });
+        let v = v.add_ordinal_strict(1).result;
+        assert_eq!(v.ordinal().get(), 187);
+        assert_eq!(v, Date::from((1350, 187)));
+        assert_eq!(v, Date::from((1350, 187)).into());
+        assert_eq!(v, Date::from((1350, 7, 1)));
+        assert_eq!(MonthDay::from(v.clone()).day(), 1);
+        assert_eq!(MonthDay::from(v.clone()).month().get(), 7);
     }
 
     #[test]
     fn test_set_doy_leap_for_leap() {
-        let mut d = Date { y: 1403, doy: 365 };
-        assert!(d.is_leap_year());
-        assert!(d.set_doy(366));
-        assert!(d.doy() == 366);
+        assert!(Date::from((1403, 366)).year().is_leap());
+        assert_eq!(
+            Date::from((1403, 365))
+                .add_ordinal_strict(1)
+                .result
+                .ordinal()
+                .get(),
+            366
+        );
+        assert_eq!(Date::from((1403, 366)).ordinal().get(), 366);
     }
 
     #[test]
     fn test_set_doy_leap_for_non_leap() {
-        let mut d = Date { y: 1404, doy: 365 };
-        assert!(!d.is_leap_year());
-        assert!(!d.set_doy(366));
-        assert!(d.doy() == 365);
+        assert!(!Date::from((1404, 366)).year().is_leap());
+        assert_eq!(
+            Date::from((1404, 365))
+                .add_ordinal_strict(1)
+                .result
+                .ordinal()
+                .get(),
+            365
+        );
+        assert_eq!(Date::from((1404, 366)).ordinal().get(), 365); // saturates
     }
 
     #[test]
     fn test_add_12_month_leap_invalid() {
-        let mut d = Date::from_ymd(1403, 12, 30).unwrap();
-        assert!(d.y() == 1403);
-        assert!(d.m() == 12);
-        assert!(d.d() == 30);
-        assert!(d.doy() == 366);
-        assert!(!d.add_m(12));
-        assert!(d.y() == 1403);
-        assert!(d.m() == 12);
-        assert!(d.d() == 30);
-        assert!(d.doy() == 366);
+        let d = Date::from((1403, 12, 30));
+        assert_eq!(d.year().get(), 1403);
+        assert_eq!(MonthDay::from(d.clone()), MonthDay::from((12, 30)));
+        assert_eq!(d.ordinal().get(), 366);
+
+        // keeps at 12 months but the day count is the same
+        assert_eq!(
+            IntYmd::from(d.add_month_strict(12).result),
+            (1403, 12, 30).into()
+        );
     }
 
     #[test]
-    fn test_add_12_month_valid() {
-        let mut d = Date::from_ymd(1403, 12, 29).unwrap();
-        assert!(d.y() == 1403);
-        assert!(d.m() == 12);
-        assert!(d.d() == 29);
-        assert!(d.doy() == 365);
-        assert!(d.add_m(12));
-        assert!(d.y() == 1404);
-        assert!(d.m() == 12);
-        assert!(d.d() == 29);
-        assert!(d.doy() == 365);
+    fn test_add_12_concecutive_month_leap_invalid() {
+        let d = Date::from((1403, 12, 30));
+
+        // `months` variant pushes to the next year but with correct day count.
+        assert_eq!(
+            IntYmd::from(d.clone().add_months_strict(12).result),
+            (1404, 12, 29).into()
+        );
+        assert_eq!(
+            IntYmd::from(d.clone().add_months_strict(13).result),
+            (1405, 1, 30).into()
+        );
     }
 
-    // Since the library is `cdylib`, Rust doesn't test the snippets in the code, this is a manual
-    // copy of the code mentioned in the readme.
+    // Since the library is `cdylib`, Rust doesn't test the snippets in the documentation code, this
+    // is a manual copy of the code mentioned in the readme.
     #[test]
     fn test_readme() {
-        let fixed_point = Date::from_ymd(1404, 2, 13).unwrap(); // 2025, 5 (May), 3
-        let mut new = fixed_point.clone();
-        new.add_d(11);
-        assert_eq!((new.y(), new.m(), new.d()), (1404, 2, 24));
+        let fixed_point = Date::from((1404, 2, 13)); // 2025, 5 (May), 3
+        assert_eq!(fixed_point.add_days(11), Date::from((1404, 2, 24)));
     }
 
     #[test]
     fn test_is_leap_year_min_i32() {
-        assert!(!is_leap_year(i32::MIN))
+        assert!(!Year::from(i32::MIN).is_leap());
+    }
+
+    #[test]
+    fn test_is_leap_year_1348_pre_and_post_epoch() {
+        // this effects the diff epoch tests
+        assert!(!(Year::EPOCH - 1).is_leap());
+        assert!(!Year::EPOCH.is_leap());
+        assert!(!(Year::EPOCH + 1).is_leap());
+    }
+
+    #[test]
+    fn test_year_zero_and_ones_are_not_leap() {
+        // not that it matters but more delicate checks into the code is probably needed if they
+        // differ.
+        assert!(!Year::from(-1).is_leap());
+        // zero untestable in this new typed values assert!(!Year::from(0).is_leap());
+        assert!(!Year::from(1).is_leap());
     }
 
     #[test]
     fn test_d_past_epoch() {
         // past
         assert_eq!(
-            Date::from_ymd(EPOCH_YEAR - 1, EPOCH_MONTH - 1, EPOCH_DOM - 1)
-                .unwrap()
-                .d_past_epoch(),
-            0
+            Date::from((
+                Year::EPOCH,
+                MonthDay::EPOCH.month(),
+                MonthDay::EPOCH_DAY - 1,
+            ))
+            .diff_epoch_strict(),
+            -1,
         );
         assert_eq!(
-            Date::from_ymd(EPOCH_YEAR, EPOCH_MONTH - 1, EPOCH_DOM - 1)
-                .unwrap()
-                .d_past_epoch(),
-            0
+            Date::from((
+                Year::EPOCH,
+                MonthDay::EPOCH.month() - 1,
+                MonthDay::EPOCH_DAY,
+            ))
+            .diff_epoch_strict(),
+            -30
         );
         assert_eq!(
-            Date::from_ymd(EPOCH_YEAR, EPOCH_MONTH, EPOCH_DOM - 1)
-                .unwrap()
-                .d_past_epoch(),
-            0
+            Date::from((
+                Year::EPOCH - 1,
+                MonthDay::EPOCH.month(),
+                MonthDay::EPOCH_DAY,
+            ))
+            .diff_epoch_strict(),
+            -365
         );
-        // same
-        assert_eq!(Date::epoch().d_past_epoch(), 0);
+        assert_eq!(
+            Date::from((
+                Year::EPOCH - 1,
+                MonthDay::EPOCH.month() - 1,
+                MonthDay::EPOCH_DAY - 1,
+            ))
+            .diff_epoch_strict(),
+            -365 - 30 - 1
+        );
+        // // same
+        assert_eq!(Date::EPOCH.diff_epoch_strict(), 0);
 
-        // future
+        // // future
         assert_eq!(
-            Date::from_ymd(EPOCH_YEAR, EPOCH_MONTH + 1, EPOCH_DOM)
-                .unwrap()
-                .d_past_epoch(),
+            Date::from((
+                Year::EPOCH,
+                MonthDay::EPOCH.month(),
+                MonthDay::EPOCH_DAY + 1,
+            ))
+            .diff_epoch_strict(),
+            1,
+        );
+        assert_eq!(
+            Date::from((
+                Year::EPOCH,
+                MonthDay::EPOCH.month() + 1,
+                MonthDay::EPOCH_DAY,
+            ))
+            .diff_epoch_strict(),
             30
         );
         assert_eq!(
-            Date::from_ymd(EPOCH_YEAR, 12, 29).unwrap().d_past_epoch(),
-            (365 - EPOCH_DOY) as Day
+            Date::from((
+                Year::EPOCH + 1,
+                MonthDay::EPOCH.month(),
+                MonthDay::EPOCH_DAY,
+            ))
+            .diff_epoch_strict(),
+            365
         );
         assert_eq!(
-            Date::from_ymd(EPOCH_YEAR + 1, 1, 1).unwrap().d_past_epoch(),
-            (365 - EPOCH_DOY + 1) as Day
-        );
-        assert_eq!(
-            Date::from_ymd(EPOCH_YEAR + 1, 1, 2).unwrap().d_past_epoch(),
-            (365 - EPOCH_DOY + 2) as Day
+            Date::from((
+                Year::EPOCH + 1,
+                MonthDay::EPOCH.month() + 1,
+                MonthDay::EPOCH_DAY + 1,
+            ))
+            .diff_epoch_strict(),
+            365 + 30 + 1
         );
     }
 }

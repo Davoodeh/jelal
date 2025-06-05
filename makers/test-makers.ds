@@ -1,0 +1,51 @@
+#!/usr/local/env duck
+#
+# Test all the scripts (Rust for now) in `SCRIPTS` directory.
+#
+# Requires a temp location (`CARGO_MAKE_TEMP`) and the location of scripts at
+# `SCRIPTS`
+#
+# Also, requires `rust-script` and `rustc`
+
+tmp = set ${CARGO_MAKE_TEMP}
+scripts = set ${SCRIPTS}
+
+rustc_flags = set "-Zno-codegen -Awarnings --crate-type=lib"
+
+mkdir_result = mkdir ${tmp}
+if not mkdir_result
+    echo Could not create ${tmp}
+    exit 1
+end
+
+cwd = cd ${tmp}
+if is_empty ${cwd}
+    echo Could not `cd` into ${cwd}
+end
+
+ls_scripts = exec --fail-on-error ls ${scripts}
+files = split ${ls_scripts.stdout} \n
+
+# Lint the general scripts for compilation with rustc (does not run)
+for i in ${files}
+    # Checking duck (--lint) files does not do much
+    if ends_with ${i} ".rs"
+        echo Checking ${i} with `${rustc_flags}`
+        abs_path = concat ${scripts} "/" ${i}
+        exec --fail-on-error rustup run nightly rustc %{rustc_flags} ${abs_path}
+    end
+end
+
+# Run commons and compile to ensure env values are set and everything is good
+# The higher sensitivity is because everything depends on this
+# Also, this script does not have a `main` so running it will not cause
+# unexpected side-effects
+commons = set ${scripts}/common.rs
+echo Compiling ${commons} for `env` critical value checks
+out = exec --fail-on-error rust-script --test ${commons}
+if not is_empty ${out.code}
+    if greater_than ${out.code} 0
+        echo Failed to compile ${commons} script
+        exit ${out.code}
+    end
+end

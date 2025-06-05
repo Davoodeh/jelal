@@ -1,6 +1,6 @@
 [package]
 name = "jelal_proc"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["M. Yas. Davoodeh <MYDavoodeh@gmail.com>"]
 description = "Generate simple bindgen signitures for Jelal calendar"
 edition = "2024"
@@ -14,6 +14,6 @@ categories = ["development-tools::ffi"]
 proc-macro = true
 
 [dependencies]
-syn = { version = "2.0", features = ["full"] }
-quote = "1.0"
-proc-macro2 = "1.0"
+syn = { version = "2.0.101", features = ["full"] }
+quote = "1.0.40"
+proc-macro2 = "1.0.95"

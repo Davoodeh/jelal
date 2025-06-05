@@ -1,0 +1,234 @@
+# Notes:
+# - Mark user specific categories in `Makefile.toml` with `Jelal` and the
+#   developer specifics with `Jelal Dev`
+# - Move long scripts to scripts folder
+# - Prefer `duck` over `sh`
+# - Prefer `Rust` over `duck`
+# - Keep scripts short and fast to compile (see `init_task`)
+#
+# TODO add install for js
+# TODO add install for Mac
+# TODO add a target for creating an env and `develop` of maturin
+
+# See `makers` for scripts.
+[config]
+# Running clean-makers is required for env to be saved in const in Rust scripts
+# since the scripts are not that many, it's okay to compile everytime
+init_task = "clean-makers"
+# When ran as root or with other premissions, temps may be inaccessable.
+# cleaning makers cache at the end ensures this won't happen
+end_task = "clean-makers"
+
+[env]
+# These are the defaults for `development`, override anything in `release` and
+# keep all the defaults
+
+C_HEADER = "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/c_header.h"
+SCRIPTS = "/${CARGO_MAKE_WORKING_DIRECTORY}/makers"  # required for scripts
+
+TARGET_PROFILE = "debug"
+RELEASE_FLAG = ""
+CARGO_MAKE_TEMP = "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/_cargo_make_temp"
+
+# CMake-like defaults
+INSTALL_PREFIX = { source = "${CARGO_MAKE_RUST_TARGET_OS}", default_value = "/usr/local", mapping = { "windows" = "c:/Program Files/${CARGO_MAKE_PROJECT_NAME}" } }
+# TODO how about determining if lib64/Program Files (x86) should be used when existing and
+# compatible with the project
+INSTALL_LIBDIR = "lib"
+INSTALL_INCLUDEDIR = "include"
+INSTALL_BINDIR = "bin"
+# these should be depended on while the previous are taken
+INSTALL_FULL_LIBDIR = "${INSTALL_PREFIX}/${INSTALL_LIBDIR}"
+INSTALL_FULL_INCLUDEDIR = "${INSTALL_PREFIX}/${INSTALL_INCLUDEDIR}"
+INSTALL_FULL_BINDIR = "${INSTALL_PREFIX}/${INSTALL_BINDIR}"
+LIBEXT = { source = "${CARGO_MAKE_RUST_TARGET_OS}", default_value = "unknown", mapping = {"linux" = "so", "macos" = "dylib", "windows" = "dll", "openbsd" = "so" } }
+
+[env.development]
+# by keeping this empty, it's essentially an alias to `debug` as well (which is
+# somewhat important for the ease of usage)
+
+[env.release]
+# This is the only different profile. The rest are just `development`
+#
+RUSTDOCFLAGS = "-Dwarnings"
+RUSTFLAGS = "-Dwarnings"
+# Profile is independent of CARGO_MAKE_PROFILE and mimics the target/$
+TARGET_PROFILE = "release"
+RELEASE_FLAG = "--release"
+
+[tasks.default]
+alias = "build"
+
+[tasks.build]
+category = "Jelal"
+description = "Build the library for Rust usage and ensure all codes are generated"
+dependencies = ["codegen"]
+command = "cargo"
+args = [
+    "build",
+    "--lib",
+    "@@remove-empty(RELEASE_FLAG)",
+    "@@split(BUILD_FLAGS, )",
+]
+
+[tasks.build-c]
+category = "Jelal"
+description = "Build the sources and library for C usage"
+extend = "build"
+env = { "BUILD_FLAGS" = "--features=c" }
+
+[tasks.wasm32-target]
+description = "Test and install wasm32-unknown-unknown if not available"
+private = true
+script = '''
+#!@duckscript
+list = exec --fail-on-error rustup target list --installed
+targets = split ${list.stdout} \n
+
+tuple = set "wasm32-unknown-unknown"
+
+if not array_contains ${targets} ${tuple}
+    exec --fail-on-error rustup target add ${tuple}
+end
+'''
+
+[tasks.build-wasm]
+category = "Jelal"
+description = "Build the sources and library for WASM target"
+dependencies = ["wasm32-target"]
+extend = "build"
+env = { "BUILD_FLAGS" = "--target=wasm32-unknown-unknown --features=wasm" }
+
+[tasks.build-py]
+category = "Jelal"
+description = "Build the sources and library for Python usage"
+extend = "build"
+env = { "BUILD_FLAGS" = "--features=py" }
+
+[tasks.maturin]
+category = "Jelal"
+description = "Build and package the Python version with `maturin`"
+dependencies = ["build-py"]
+# maturin versions after 1.8.7 up to 1.9.1 cannot be built easily on rustc 1.88
+# and forward (may even before) for xwin errors (check docs.rs build logs)
+# https://docs.rs/crate/maturin/1.9.1/builds/2299940
+install_crate = { crate_name = "maturin", binary = "maturin", test_arg = "--help", version = "1.8.7" }
+command = "maturin"
+args = ["build", "--features=py,pyo3/extension-module"]
+
+[tasks.wasm-pack]
+category = "Jelal"
+description = "Build and package the WASM (JS/TS) version with `wasm-pack`"
+dependencies = ["build-wasm"]
+install_crate = { crate_name = "wasm-pack", binary = "wasm-pack", test_arg = "--help" }
+command = "wasm-pack"
+args = [
+    "build",
+    "--out-dir",
+    "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/pkg",
+    "--features=wasm"
+]
+
+[tasks.codegen]
+category = "Jelal Dev"
+description = "Run the FFI codegen crate"
+cwd = "codegen"
+command = "cargo"
+args = ["run"]
+
+[tasks.cbindgen]
+category = "Jelal"
+description = "Generate C headers from the C build"
+dependencies = ["build-c"]
+toolchain = "nightly"  # required for expanding macros
+install_crate = { crate_name = "cbindgen", binary = "cbindgen", test_arg = "--help", min_version = "0.29.0" }
+command = "cbindgen"
+args = ["--output", "${C_HEADER}", "--quiet"]  # many warnings and false errors
+
+[tasks.test-complete]
+category = "Jelal Dev"
+description = "Doc, Clippy and test all the possible combination of feature flags (slow)"
+dependencies = ["build"]  # build task resolves dependencies
+script_runner = "@rust"
+script = { file = "${SCRIPTS}/test-complete.rs", absolute_path = true }
+
+[tasks.test-makers]
+category = "Jelal Dev"
+install_crate = { crate_name = "rust-script", binary = "rust-script", test_arg = "--help" }
+description = "Test all the scripts and tasks for `cargo make`"
+script_runner = "@duckscript"
+script = { file = "${SCRIPTS}/test-makers.ds", absolute_path = true }
+
+[tasks.pre-commit]
+category = "Jelal Dev"
+description = "Run the complete tests and build every package and possible flags before pushing"
+run_task = [
+    { condition = { profiles = ["release"] }, name = "test-final-actual-task" },
+    # TODO also throw error if git stage is not clean
+    { name = "error-require-release" }
+]
+
+[tasks.test-final-actual-task]
+private = true
+dependencies = [
+    "clean",
+    "test-makers",
+    # is "miri" a good idea? tests are incomplete and code is not ready maybe...
+    "test-complete",
+    "cbindgen",
+    "wasm-pack",
+    "maturin",
+]
+
+[tasks.clean-makers]
+category = "Jelal Dev"
+description = "Delete Cargo Make cache (for applying script changes on env)"
+script = '''
+#!@duckscript
+rm -r ${CARGO_MAKE_TEMP}/
+rm -r ${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/_tempplugin/
+'''
+
+[tasks.clean-codegen]
+private = true
+category = "Jelal Dev"
+description = "`cargo clean` for `codegen`"
+cwd = "codegen"
+command = "cargo"
+args = ["clean"]
+
+[tasks.clean-this]
+private = true
+category = "Jelal Dev"
+description = "`cargo clean` this crate"
+command = "cargo"
+args = ["clean"]
+
+[tasks.clean]
+category = "Jelal Dev"
+description = "`cargo clean` this and `codegen`"
+dependencies = [
+    "clean-this",
+    "clean-codegen",
+]
+
+[tasks.install-wheel]
+category = "Jelal"
+description = "Install the latest build of `whl` Python Wheel package"
+script_runner = "@rust"
+script = { file = "${SCRIPTS}/install_newest_wheel.rs", absolute_path = true }
+
+[tasks.install-lib]
+category = "Jelal"
+description = "Install generated library files in the library path"
+script_runner = "@rust"
+script = { file = "${SCRIPTS}/install_lib.rs", absolute_path = true }
+
+[tasks.error-require-release]
+private = true
+script = '''
+#!@duckscript
+echo the invoked task requires `--profile release` (pass right after `make`)
+exit 1
+'''
+

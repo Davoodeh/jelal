@@ -1,6 +1,6 @@
 [package]
 name = "jelal"
-version = "0.3.0"
+version = "0.4.0"
 description = "A minimal Jalali (Persian/Iranian) calendar date convertor"
 edition = "2024"
 rust-version = "1.85" # technically much lower, but aim is for 2024
@@ -15,13 +15,11 @@ name = "jelal"
 crate-type = ["cdylib"]
 
 [features]
-default = ["const"]
-std = ["time?/std"]
-const = []
-c = []
-wasm = ["dep:wasm-bindgen"]
-py = ["dep:pyo3", "std"]
-time = ["dep:time"]
+std = []
+ffi = []
+c = ["ffi"]
+wasm = ["ffi", "std", "dep:wasm-bindgen"]
+py = ["ffi", "std", "dep:pyo3"]
 
 [profile.dev]
 panic = "abort"
@@ -34,8 +32,10 @@ lto = true
 opt-level = 3
 
 [dependencies]
-jelal_proc = { version = "0.3.0", path = "./jelal_proc" }
+jelal_proc = { version = "0.4.0", path = "./jelal_proc" }
 
-wasm-bindgen = { version = "0.2.100", optional = true }
-pyo3 = { version = "0.24.2", features = ["multiple-pymethods", "extension-module"], optional = true }
-time = { version = "0.3.41", default-features = false, optional = true }
+# extension-module feature for pyo3 is disabled by default (not to fail the
+# tests) so build with --features=pyo3/extension-module when making the package
+# as it is in the build script.
+pyo3 = { version = "0.25.1", features = ["multiple-pymethods", "macros"], optional = true }
+wasm-bindgen = { version = "0.2.100", features = ["msrv"], default-features = false, optional = true }
