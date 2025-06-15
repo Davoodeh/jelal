@@ -204,7 +204,7 @@ See the CHANGELOG file in the source for the news about each release.
 
 - Debloat staticlib.a output
 - Write more tests
-- Add Go support
+- Add Go support (maybe Uniffi helps)
 - Add a class based C++ intermediate.
 - Add Github build tools, lints, formatters and Clippy!
 - Add Windows and MacOS support
@@ -214,3 +214,6 @@ See the CHANGELOG file in the source for the news about each release.
   cbindgen
 - Copy terminology and inner structures from a library like Chrono instead of
   this handmade stuff
+- Replace CMake with Makefile.toml
+- Leverage Uniffi or Diplomat (both? alongside cbindgen?)
+
