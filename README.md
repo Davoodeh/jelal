@@ -217,3 +217,23 @@ See the CHANGELOG file in the source for the news about each release.
 - Replace CMake with Makefile.toml
 - Leverage Uniffi or Diplomat (both? alongside cbindgen?)
 
+### License
+
+The license of this crate and its components is exactly as described in the
+`Cargo.toml`, [`MIT`] OR [`Apache-2.0`]. Some few functions are copied (with minor
+changes) from
+[`unicode-org/icu4x/utils/calendrical_calculations/src/persian.rs`]
+which probably lies under the "Software" clause of the free
+[`Unicode-3.0`] license (see the exact file here:
+[`unicode-org/icu4x/LICENSE`]).
+
+For the dependencies, consult their licenses but this crate aims to keep it at
+[`MIT`] OR [`Apache-2.0`] dual license for the simplicity sake, as for the rest
+of the ecosystem with the exception of the [`Unicode-3.0`] mentioned above.
+
+[`MIT`]: https://opensource.org/license/MIT
+[`Apache-2.0`]: https://opensource.org/license/apache-2-0
+[`Unicode-3.0`]: https://opensource.org/license/unicode-license-v3
+[`unicode-org/icu4x/LICENSE`]: https://github.com/unicode-org/icu4x/blob/main/LICENSE
+[`unicode-org/icu4x/utils/calendrical_calculations/src/persian.rs`]: https://github.com/unicode-org/icu4x/blob/main/utils/calendrical_calculations/src/persian.rs
+
