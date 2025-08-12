@@ -1,3 +1,10 @@
+# `0.4.1`
+
+## Change
+
+- codegen: `ImplConst` items are now visited beforetheir duplicate global were
+  produced.
+
 # `0.4.0`
 
 Total rewrite of the library with an emphasis on new types. This version

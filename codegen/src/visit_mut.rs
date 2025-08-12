@@ -836,6 +836,8 @@ impl VisitMut for RustFfi {
             }
         }
 
+        visit_impl_item_const_mut(self, i);
+
         // Make a global duplicate of this item out of the impl scope
         // TODO Enable for languages
         self.added_items.push(Item::Const(ItemConst {
@@ -854,8 +856,6 @@ impl VisitMut for RustFfi {
             expr: Box::new(i.expr.clone()),
             semi_token: i.semi_token.clone(),
         }));
-
-        visit_impl_item_const_mut(self, i);
     }
 
     fn visit_impl_item_fn_mut(&mut self, i: &mut syn::ImplItemFn) {
