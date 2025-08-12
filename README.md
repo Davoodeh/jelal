@@ -278,6 +278,7 @@ See the `CHANGELOG` file in the source for the news about each release.
 - Add a script that automatically adds the content of `test_readme` to this
   readme
 - Add build script for examples and add them to tests
+- Add a script to automatically generate the changelog
 
 ## License
 
