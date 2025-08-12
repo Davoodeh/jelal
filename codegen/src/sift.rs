@@ -133,11 +133,11 @@ impl VisitMut for Sift {
         visit_file_mut(self, i);
     }
 
-    /// Select `doc` and `repr` attributes and only that.
+    /// Select `deprecated`, `doc` and `repr` attributes and only that.
     fn visit_attributes_mut(&mut self, i: &mut Vec<Attribute>) {
+        const SIFT: &[&str] = &["doc", "repr", "deprecated"];
         i.retain_mut(|attr| {
-            let p = attr.path();
-            let keep = p.is_ident("doc") || p.is_ident("repr");
+            let keep = SIFT.iter().any(|i| attr.path().is_ident(i));
             if keep {
                 visit_attribute_mut(self, attr);
             }

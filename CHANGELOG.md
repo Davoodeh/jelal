@@ -1,5 +1,9 @@
 # `0.4.1`
 
+## Add
+
+- Support for `deprecated` in `codegen`.
+
 ## Change
 
 - codegen: `ImplConst` items are now visited beforetheir duplicate global were

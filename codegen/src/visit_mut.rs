@@ -570,6 +570,61 @@ impl RustFfi {
             _ => {}
         }
     }
+
+    /// Given a valid `deprecated` attribute, returns a string explaining its situation.
+    ///
+    /// If not a valid deprecated attribute, returns None.
+    fn deprecated_to_doc(deprecated_meta: &syn::Meta) -> Option<String> {
+        if !deprecated_meta.path().is_ident("deprecated") {
+            return None;
+        }
+
+        // add a deprecated note for every deprecated item and remove the deprecated attribute
+        //
+        // Since this only tackles the deprecated issues as of now, the whole block is dedicated
+        // to it
+        // extract a lit_str from a value or not
+        let lit_str_value = |expr: &syn::Expr| match &expr {
+            syn::Expr::Lit(syn::ExprLit {
+                lit: syn::Lit::Str(lit_str),
+                ..
+            }) => Some(lit_str.value()),
+            _ => None,
+        };
+
+        let note = match &deprecated_meta {
+            syn::Meta::NameValue(kv) => lit_str_value(&kv.value),
+            syn::Meta::List(meta_list) => meta_list
+                .parse_args_with(Punctuated::<syn::MetaNameValue, Token![,]>::parse_terminated)
+                .ok()
+                .and_then(|name_values| {
+                    let note = name_values
+                        .iter()
+                        .find(|kv| kv.path.is_ident("note"))
+                        .and_then(|kv| lit_str_value(&kv.value));
+                    let since = name_values
+                        .iter()
+                        .find(|kv| kv.path.is_ident("since"))
+                        .and_then(|kv| lit_str_value(&kv.value))
+                        .map(|i| format!("since `{}`", i));
+
+                    // join or whatever at hand
+                    match (note, since) {
+                        (Some(note), Some(since)) => {
+                            Some(format!("{} ({})", note, since.to_ascii_lowercase()))
+                        }
+                        (a, b) => a.or(b),
+                    }
+                }),
+            _ => None,
+        };
+
+        Some(format!(
+            " Deprecated: {}.",
+            note.as_deref()
+                .unwrap_or("may break in the future versions")
+        ))
+    }
 }
 
 impl VisitMut for RustFfi {
@@ -587,6 +642,26 @@ impl VisitMut for RustFfi {
         let mut added_items = std::mem::take(&mut self.added_items);
         remove_empty_items(&mut added_items);
         i.items.append(&mut added_items);
+    }
+
+    fn visit_attributes_mut(&mut self, i: &mut Vec<syn::Attribute>) {
+        // loop over all items and visit_attribute_mut, except each element may add another
+        let mut attr_index = 0;
+        while attr_index < i.len() {
+            if let Some(deprecated_doc) = Self::deprecated_to_doc(&i[attr_index].meta) {
+                // Effectively removes all the docs in FFI by coming the first
+                // TODO hence it's important to implement a `collapse-docs`.
+                i.insert(0, parse_quote! { #[doc = #deprecated_doc] });
+                self.visit_attribute_mut(&mut i[0]);
+                i.insert(1, parse_quote! { #[doc = ""] });
+                self.visit_attribute_mut(&mut i[1]);
+                attr_index += 2;
+            }
+
+            self.visit_attribute_mut(&mut i[attr_index]);
+
+            attr_index += 1;
+        }
     }
 
     fn visit_attribute_mut(&mut self, i: &mut syn::Attribute) {
