@@ -70,7 +70,7 @@ impl Sift {
     ///
     /// Enforcing ident patterns (i.e. `var: ty`) helps parsing, changing and validating the inputs
     /// and also helps with generating usage (i.e. `var` as an argument usage).
-    pub fn is_acceptable_sig(&self, sig: &Signature) -> bool {
+    pub fn is_acceptable_sig(sig: &Signature) -> bool {
         let generics_empty_ident_inputs = sig.inputs.iter().all(|input| match input {
             syn::FnArg::Receiver(_) => true,
             syn::FnArg::Typed(pat_type) => is_ident(&pat_type.pat),
@@ -114,7 +114,7 @@ impl VisitMut for Sift {
                         v.items.retain(|i| match i {
                             ImplItem::Const(_) => true,
                             ImplItem::Type(_) => true,
-                            ImplItem::Fn(v) => self.is_acceptable_sig(&v.sig),
+                            ImplItem::Fn(v) => Self::is_acceptable_sig(&v.sig),
                             _ => false,
                         });
                         self.is_acceptable_struct(&ident, &v.generics)
