@@ -81,7 +81,7 @@ impl Into<Ident> for ReprInt {
     }
 }
 
-/// Resolves types of a module to their primitives (see [`TypeResolverError`] for limitations).
+/// Resolves types of a module to their primitives.
 ///
 /// As of now, just resolves a single field `struct` and/or type aliases.
 #[derive(Debug, Default, Clone)]
@@ -93,7 +93,7 @@ pub struct TypeResolver {
 }
 
 impl TypeResolver {
-    /// Return the closest alias to the given type which equats to the [`Self::repr_int`] result.
+    /// Return the closest alias that represents an `repr`able integer (may require conversion).
     pub fn repr_alias<'a>(&'a self, k: &'a str) -> Option<&'a str> {
         let alias_k = if let Some(from_into_result) = self.from_into_map.get(k) {
             if ReprInt::try_from_str(from_into_result).is_some() {

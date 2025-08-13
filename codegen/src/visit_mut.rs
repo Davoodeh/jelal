@@ -14,9 +14,9 @@
 //!   original structs must be available from `use crate::*;` (see more in [`RustFfi::parent`]).
 //! - All the items must have [`Ident`] as their idents, type or path (for previous limitations).
 //! - No type is allowed to have a string match of `Self` (case-sensitive) in any ident segment
-//!   ([`Collected::deself`]).
+//!   ([`RustFfi::deself`]).
 //! - No function or method signiture can have a parameter name ending in `mut`
-//!   ([`pat_type_to_usage`]).
+//!   ([`RustFfi::pat_type_to_usage`]).
 //! - All the types and fields must be `transmute` compatible as it is used on everything in the
 //!   output.
 //! - All the fields must be public and have `Into` and `From` implemented between the field type
@@ -26,7 +26,7 @@
 //!
 //! Ignored items:
 //! - Only "mod style" paths (no generics) are allowed as outputs of items in an `impl` block
-//!   ([`Collected::visit_impl_item_mut`]).
+//!   ([`RustFfi::visit_impl_item_mut`]).
 //! - All enums
 //! - All functions
 //! - Methods with mutable reference to primitive integers
