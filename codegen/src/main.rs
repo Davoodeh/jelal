@@ -33,12 +33,19 @@ const IDENTS: &[&str] = &["Date", "Month", "MonthDay", "Ordinal", "Year"];
 
 /// Inside these files.
 const FILES: [&str; 2] = ["lib.rs", "primitive.rs"];
+
+/// Indicates the Rust output of the files.
+///
+/// This must be relative.
 const OUTPUT: &str = "ffi/generated.rs";
 
+/// Holds the path for the location of jelal's src directory.
 const FILES_PREFIX: &str = "../src/";
 
+/// Holds the name for jelal cratename.
 const LIB_NAME: &str = "jelal";
 
+/// Prefixes the given path so it will be in the jelal sources.
 fn prefixed_path(path: &str) -> String {
     format!("{}{}", FILES_PREFIX, path)
 }
