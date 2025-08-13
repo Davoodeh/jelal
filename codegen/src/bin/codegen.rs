@@ -17,38 +17,7 @@ use syn::{visit_mut::VisitMut, File, Item};
 
 use crate::visit_mut::RustFfi;
 
-mod resolve_type;
-mod sift;
-mod util;
-mod visit_mut;
-
-// features
-const STD_FEATURE: &str = "std";
-const PY_FEATURE: &str = "py";
-const C_FEATURE: &str = "c";
-const WASM_FEATURE: &str = "wasm";
-
-/// Match the idents defined here.
-const IDENTS: &[&str] = &["Date", "Month", "MonthDay", "Ordinal", "Year"];
-
-/// Inside these files.
-const FILES: [&str; 2] = ["lib.rs", "primitive.rs"];
-
-/// Indicates the Rust output of the files.
-///
-/// This must be relative.
-const OUTPUT: &str = "ffi/generated.rs";
-
-/// Holds the path for the location of jelal's src directory.
-const FILES_PREFIX: &str = "../src/";
-
-/// Holds the name for jelal cratename.
-const LIB_NAME: &str = "jelal";
-
-/// Prefixes the given path so it will be in the jelal sources.
-fn prefixed_path(path: &str) -> String {
-    format!("{}{}", FILES_PREFIX, path)
-}
+pub use codegen::*;
 
 fn parse_file(path: &str) -> Result<Vec<Item>, Box<dyn Error>> {
     let content = read_to_string(prefixed_path(path))?;

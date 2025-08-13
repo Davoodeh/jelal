@@ -134,7 +134,7 @@ category = "Jelal Dev"
 description = "Run the FFI codegen crate"
 cwd = "codegen"
 command = "cargo"
-args = ["run"]
+args = ["run", "--bin=codegen"]
 
 [tasks.cbindgen]
 category = "Jelal"

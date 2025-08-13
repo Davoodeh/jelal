@@ -6,8 +6,11 @@
 
 ## Change
 
-- codegen: `ImplConst` items are now visited beforetheir duplicate global were
-  produced.
+- codegen:
+  - `ImplConst` items are now visited beforetheir duplicate global were
+    produced.
+  - `codegen` the crate now holds multiple binaries and the previous `main.rs`
+    is renamed as `codegen.rs`.
 
 # `0.4.0`
 
