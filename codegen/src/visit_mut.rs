@@ -670,6 +670,8 @@ impl VisitMut for RustFfi {
             let meta = &i.meta;
             i.meta = parse_quote!(cfg_attr(feature = #C_FEATURE, #meta));
         }
+
+        visit_attribute_mut(self, i);
     }
 
     fn visit_item_struct_mut(&mut self, i: &mut syn::ItemStruct) {
