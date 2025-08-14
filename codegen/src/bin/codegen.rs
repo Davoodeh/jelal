@@ -25,10 +25,12 @@ fn parse_file(path: &str) -> Result<Vec<Item>, Box<dyn Error>> {
     Ok(parsed.items)
 }
 
-fn write_output(content: impl ToString) -> Result<(), Box<dyn Error>> {
-    // path="src/$path"
-    let path_binding = prefixed_path(OUTPUT);
-    let path = std::path::Path::new(&path_binding);
+/// Write the content to the path and create the directory if not there.
+fn write_output<S: AsRef<std::ffi::OsStr> + ?Sized>(
+    path: &S,
+    content: impl ToString,
+) -> Result<(), std::io::Error> {
+    let path = std::path::Path::new(&path);
 
     // mkdir -p $(basedir $path)
     if let Some(parent) = path.parent() {
@@ -36,23 +38,7 @@ fn write_output(content: impl ToString) -> Result<(), Box<dyn Error>> {
     }
 
     // echo $src > $path
-    std::fs::File::create(path).and_then(|mut i| i.write_all(content.to_string().as_bytes()))?;
-
-    // rustfmt if possible
-    const ERR_INTRO: &str = " `rustfmt` was called and failed";
-    match std::process::Command::new("rustfmt")
-        .arg(path)
-        .spawn()
-        .and_then(|mut i| i.wait())
-    {
-        Ok(exit_status) if exit_status.success() => {}
-        Ok(exit_status) => {
-            println!("{} with a failure exit status: {}", ERR_INTRO, exit_status)
-        }
-        Err(e) => println!("{}: {}", ERR_INTRO, e),
-    }
-
-    Ok(())
+    std::fs::File::create(path).and_then(|mut i| i.write_all(content.to_string().as_bytes()))
 }
 
 fn generate_content(items: Vec<Item>) -> TokenStream {
@@ -99,8 +85,25 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let content = generate_content(files.into_iter().flatten().collect());
 
-    write_output(content)?;
+    let path = prefixed_path(OUTPUT);
+    write_output(&path, content)?;
     println!("wrote: {:?}", OUTPUT);
+
+    // rustfmt if possible
+    const ERR_INTRO: &str = " `rustfmt` was called and failed";
+    match std::process::Command::new("rustfmt")
+        .arg(path)
+        .spawn()
+        .and_then(|mut i| i.wait())
+    {
+        Ok(exit_status) if exit_status.success() => {
+            println!("formatted using `rustfmt`")
+        }
+        Ok(exit_status) => {
+            println!("{} with a failure exit status: {}", ERR_INTRO, exit_status)
+        }
+        Err(e) => println!("{}: {}", ERR_INTRO, e),
+    }
 
     Ok(())
 }
