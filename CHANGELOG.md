@@ -1,8 +1,16 @@
+# Future (probably `0.5.0`)
+
+## Change
+
+- Default `headers` task to `cffi`.
+
 # `0.4.1`
 
 ## Add
 
 - Support for `deprecated` in `codegen`.
+- Experimental support for a custom `codegen` replacement for `cbindgen` (namely
+  `cffi`, use `make cffi` to test) to generate the C headers.
 
 ## Change
 

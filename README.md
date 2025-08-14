@@ -13,7 +13,7 @@ Supported in:
 - Rust
 - JavaScript/TypeScript (using `wasm-pack`)
 - Python (using `maturin`)
-- C (using `cbindgen`)
+- C (using `cbindgen` or built-in `codegen`)
 
 Jump to [Building and Usage](#building-and-usage) for installation.
 
@@ -112,6 +112,31 @@ For more information, see the crate. This crate was not intended for publication
 (at least for now) since it is yet to prove useful for any purpose and style of
 coding beyond this project's.
 
+#### Regarding `codegen`'s `cffi` and `cbindgen`
+
+Although this crate originally supported `cbindgen`, that was put aside
+(partially) and a custom solution is being iterated on which you can use right
+now using `make` commands.
+
+`codegen` internal crate heavily relies on re-exports under different names
+which confuses `cbindgen` (i.e `Date` is the Rust struct that operates
+everything and also `ffi::Date` is a "mirror" of it created by `codegen` to work
+more gracefully in FFI boundaries). This confusion causes incosistent behavior
+for attribute and values (especially if a value should differ in FFI in compare
+to its Rust-only counterpart). As of now, such incosistencies do not effect the
+crate and make `cbindgen` a viable option; Only if the user accepts that
+everything is working "unintentionally."
+
+Another interesting conflict between the capabilities of `cbindgen` and the
+methods that `codegen` uses to facilities FFI interactions is regarding
+constants. As of now constants use transmutes to convert between FFI counterpart
+and Rust-only counterparts (yes, `transmute` is frowned upon and this approach
+may change for that reason). Yet again, `cbindgen` cannot handle the transmute
+expression and opts for the original value instead (which is mostly fine but
+accidentally) and dumps a lot of false warnings. A bold distinction of
+`cbindgen` and `codegen`'s `cffi` binary is that the latter prefers
+`extern const` for constants rather than ("evil") `define` macros.
+
 ## Building and Usage
 
 If you are in a hurry, run the following command with either of the `verb`s
@@ -123,18 +148,18 @@ cargo make $VERB
 
 Important final verbs for the rushed:
 - `build`: Rust build
-- `cbindgen` (C): Creates the C compatible library and C headers for the C
-  language (using nightly for the bindgen part)
+- `headers` (C): Creates the C compatible library and C headers for the C
+  language (the default using nightly for the `cbindgen` part, or use `cffi`)
 - `wasm-pack` (JS/TS): Creates the library and its package with `wasm-pack`
 - `maturin` (Python): Creates the library and its package with `maturin`
 
 ### Longer explanation
 
 To build the library one could use a simple `cargo build` and generate the
-headers using tools like `cbindgen` and else, which are not explained in this
-README. If the user is not acquainted with the correct tools, the defaults are
-prepared in `Makefile.toml` which can be used with `cargo build` (`makers`) to
-build and install the project.
+headers using tools like `cbindgen` or `cffi` and else, which are not explained
+in this README. If the user is not acquainted with the correct tools, the
+defaults are prepared in `Makefile.toml` which can be used with `cargo build`
+(`makers`) to build and install the project.
 
 First, if `cargo-make` is not installed, install it.
 

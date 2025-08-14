@@ -4,7 +4,9 @@
 
 int main() {
     // Create an ordinal directly
-    UOrdinal ordinal = 1 * MonthDay_MAX_DAY + 13;
+    // if using CFFI:
+    /* UOrdinal ordinal = 1 * MONTHDAY_MAX_DAY + 13; // IF CFFI */
+    UOrdinal ordinal = 1 * MonthDay_MAX_DAY + 13; // IF CBINDGEN
     // or using monthday
     MonthDay monthday = monthday_new(2, 13);
     Ordinal ordinal_from_monthday = monthday_to_ordinal(&monthday);

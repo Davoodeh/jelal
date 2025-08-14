@@ -136,14 +136,28 @@ cwd = "codegen"
 command = "cargo"
 args = ["run", "--bin=codegen"]
 
-[tasks.cbindgen]
+[tasks.headers]
 category = "Jelal"
-description = "Generate C headers from the C build"
+description = "Generate C headers from the C build and codegen results"
+alias = "cbindgen"
+
+[tasks.cbindgen]
+category = "Jelal Dev"
+description = "Generate C headers for old versions using `cbindgen`"
+deprecated = "Use `headers` as `cbindgen` may be removed or not the default"
 dependencies = ["build-c"]
 toolchain = "nightly"  # required for expanding macros
 install_crate = { crate_name = "cbindgen", binary = "cbindgen", test_arg = "--help", min_version = "0.29.0" }
 command = "cbindgen"
 args = ["--output", "${C_HEADER}", "--quiet"]  # many warnings and false errors
+
+[tasks.cffi]
+category = "Jelal Dev"
+description = "Generate C headers from the C build using codegen crate"
+dependencies = ["build-c"]
+cwd = "codegen"
+command = "cargo"
+args = ["run", "--bin=cffi", "--", "${C_HEADER}"]
 
 [tasks.test-complete]
 category = "Jelal Dev"
