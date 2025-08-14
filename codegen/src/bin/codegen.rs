@@ -9,7 +9,7 @@
 //! Alongside the list of limitations, this crate is opinionated and using [`RustFfi`] comes with
 //! caveats and other sets of limitations defined in its doc.
 
-use std::{error::Error, fs::read_to_string, io::Write};
+use std::{error::Error, fs::read_to_string};
 
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -17,28 +17,15 @@ use syn::{visit_mut::VisitMut, File, Item};
 
 use crate::visit_mut::RustFfi;
 
-pub use codegen::*;
+pub use codegen::{
+    util::{prefixed_path, write_output},
+    *,
+};
 
 fn parse_file(path: &str) -> Result<Vec<Item>, Box<dyn Error>> {
     let content = read_to_string(prefixed_path(path))?;
     let parsed = syn::parse_file(&content)?;
     Ok(parsed.items)
-}
-
-/// Write the content to the path and create the directory if not there.
-fn write_output<S: AsRef<std::ffi::OsStr> + ?Sized>(
-    path: &S,
-    content: impl ToString,
-) -> Result<(), std::io::Error> {
-    let path = std::path::Path::new(&path);
-
-    // mkdir -p $(basedir $path)
-    if let Some(parent) = path.parent() {
-        let _ = std::fs::create_dir_all(parent);
-    }
-
-    // echo $src > $path
-    std::fs::File::create(path).and_then(|mut i| i.write_all(content.to_string().as_bytes()))
 }
 
 fn generate_content(items: Vec<Item>) -> TokenStream {

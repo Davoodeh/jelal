@@ -1,10 +1,35 @@
 //! Holds extra functions that are more general purpose than a module's.
 
+use std::io::Write;
+
 use quote::ToTokens;
 use syn::{
     parse::{Parse, Parser},
     Ident, Item,
 };
+
+use crate::FILES_PREFIX;
+
+/// Prefixes the given path so it will be in the jelal sources.
+pub fn prefixed_path(path: &str) -> String {
+    format!("{}{}", FILES_PREFIX, path)
+}
+
+/// Write the content to the path and create the directory if not there.
+pub fn write_output<S: AsRef<std::ffi::OsStr> + ?Sized>(
+    path: &S,
+    content: impl ToString,
+) -> Result<(), std::io::Error> {
+    let path = std::path::Path::new(&path);
+
+    // mkdir -p $(basedir $path)
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+
+    // echo $src > $path
+    std::fs::File::create(path).and_then(|mut i| i.write_all(content.to_string().as_bytes()))
+}
 
 /// Determine if the given generics is empty or not.
 pub fn is_generics_empty(generics: &syn::Generics) -> bool {
