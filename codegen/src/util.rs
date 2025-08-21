@@ -72,3 +72,14 @@ pub fn remove_empty_items(items: &mut Vec<Item>) {
         _ => true,
     });
 }
+
+/// Given an expression, return if the value is literal string.
+pub fn lit_str_expr(expr: &syn::Expr) -> Option<&syn::LitStr> {
+    match &expr {
+        syn::Expr::Lit(syn::ExprLit {
+            lit: syn::Lit::Str(lit_str),
+            ..
+        }) => Some(lit_str),
+        _ => None,
+    }
+}

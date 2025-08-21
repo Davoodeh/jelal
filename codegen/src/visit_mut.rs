@@ -70,7 +70,7 @@ use quote::{format_ident, quote, ToTokens};
 use crate::{
     resolve_type::TypeResolver,
     sift::Sift,
-    util::{as_ident, remove_empty_items},
+    util::{as_ident, lit_str_expr, remove_empty_items},
     C_FEATURE, LIB_NAME, PY_FEATURE, WASM_FEATURE,
 };
 
@@ -583,17 +583,9 @@ impl RustFfi {
         //
         // Since this only tackles the deprecated issues as of now, the whole block is dedicated
         // to it
-        // extract a lit_str from a value or not
-        let lit_str_value = |expr: &syn::Expr| match &expr {
-            syn::Expr::Lit(syn::ExprLit {
-                lit: syn::Lit::Str(lit_str),
-                ..
-            }) => Some(lit_str.value()),
-            _ => None,
-        };
 
         let note = match &deprecated_meta {
-            syn::Meta::NameValue(kv) => lit_str_value(&kv.value),
+            syn::Meta::NameValue(kv) => lit_str_expr(&kv.value).map(|i| i.value()),
             syn::Meta::List(meta_list) => meta_list
                 .parse_args_with(Punctuated::<syn::MetaNameValue, Token![,]>::parse_terminated)
                 .ok()
@@ -601,12 +593,12 @@ impl RustFfi {
                     let note = name_values
                         .iter()
                         .find(|kv| kv.path.is_ident("note"))
-                        .and_then(|kv| lit_str_value(&kv.value));
+                        .and_then(|kv| lit_str_expr(&kv.value).map(|i| i.value()));
                     let since = name_values
                         .iter()
                         .find(|kv| kv.path.is_ident("since"))
-                        .and_then(|kv| lit_str_value(&kv.value))
-                        .map(|i| format!("since `{}`", i));
+                        .and_then(|kv| lit_str_expr(&kv.value))
+                        .map(|i| format!("since `{}`", i.value()));
 
                     // join or whatever at hand
                     match (note, since) {

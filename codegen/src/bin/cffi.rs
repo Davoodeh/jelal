@@ -11,7 +11,7 @@ use std::process::Command;
 
 use codegen::{
     resolve_type::TypeResolver,
-    util::{is_ident, write_output},
+    util::{is_ident, lit_str_expr, write_output},
     C_FEATURE, FILES_PREFIX, LIB_NAME, OUTPUT,
 };
 use quote::{format_ident, ToTokens};
@@ -185,16 +185,13 @@ impl CFfi {
     /// This function only takes the first doc that is a literal string. It's suggested to collapse
     /// the documents using `expand`-like commands or `collapse-doc` runs.
     fn doc(attrs: &Vec<syn::Attribute>) -> String {
-        let Some(str_doc) = attrs.iter().find_map(|i| {
-            let kv = i.meta.require_name_value().ok()?;
-            match &kv.value {
-                syn::Expr::Lit(syn::ExprLit {
-                    lit: syn::Lit::Str(lit_str),
-                    ..
-                }) if kv.path.is_ident("doc") => Some(lit_str.value()),
+        let Some(str_doc) = attrs
+            .iter()
+            .find_map(|i| match i.meta.require_name_value() {
+                Ok(kv) if kv.path.is_ident("doc") => lit_str_expr(&kv.value).map(|i| i.value()),
                 _ => None,
-            }
-        }) else {
+            })
+        else {
             return Default::default();
         };
         let c_doc = format!(
@@ -293,13 +290,9 @@ impl<'a> Visit<'a> for CFfi {
             .clone()
             .iter()
             .find_map(|attr| match attr.parse_args::<syn::MetaNameValue>() {
-                Ok(kv) if kv.path.is_ident("export_name") => match &kv.value {
-                    syn::Expr::Lit(syn::ExprLit {
-                        lit: syn::Lit::Str(lit_str),
-                        ..
-                    }) => Some(lit_str.value()),
-                    _ => None,
-                },
+                Ok(kv) if kv.path.is_ident("export_name") => {
+                    lit_str_expr(&kv.value).map(|i| i.value())
+                }
                 _ => None,
             })
             .or_else(|| {
