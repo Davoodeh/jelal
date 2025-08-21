@@ -83,3 +83,14 @@ pub fn lit_str_expr(expr: &syn::Expr) -> Option<&syn::LitStr> {
         _ => None,
     }
 }
+
+/// Returns `name = literal_str` if `name` matches the given `ident`.
+pub fn name_value_str<'attr, 'ident>(
+    attr: &'attr syn::Attribute,
+    ident: &'ident str,
+) -> Option<&'attr syn::LitStr> {
+    match attr.meta.require_name_value() {
+        Ok(kv) if attr.path().is_ident(ident) => lit_str_expr(&kv.value),
+        _ => None,
+    }
+}

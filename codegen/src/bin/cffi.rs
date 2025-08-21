@@ -11,7 +11,7 @@ use std::process::Command;
 
 use codegen::{
     resolve_type::TypeResolver,
-    util::{is_ident, lit_str_expr, write_output},
+    util::{is_ident, lit_str_expr, name_value_str, write_output},
     C_FEATURE, FILES_PREFIX, LIB_NAME, OUTPUT,
 };
 use quote::{format_ident, ToTokens};
@@ -187,10 +187,8 @@ impl CFfi {
     fn doc(attrs: &Vec<syn::Attribute>) -> String {
         let Some(str_doc) = attrs
             .iter()
-            .find_map(|i| match i.meta.require_name_value() {
-                Ok(kv) if kv.path.is_ident("doc") => lit_str_expr(&kv.value).map(|i| i.value()),
-                _ => None,
-            })
+            .find_map(|i| name_value_str(i, "doc"))
+            .map(|i| i.value())
         else {
             return Default::default();
         };
