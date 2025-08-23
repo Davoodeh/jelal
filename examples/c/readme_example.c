@@ -1,6 +1,6 @@
 // compile with LD_LIBRARY_PATH set and `gcc file.c -ljelal`
 // TODO make a Makefile for these
-#include "jelal.h"
+#include <jelal.h>
 
 int main() {
     // Create an ordinal directly
