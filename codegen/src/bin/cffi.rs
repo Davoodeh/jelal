@@ -130,6 +130,9 @@ impl CFfi {
     pub fn generate_content(&self) -> String {
         format!(
             // TODO read the tags from Cargo.toml
+            // TODO remove the `tm` typedef and typeresolver should make this automatically
+            //      based on the code in `ffi` module.
+            //      now, it's just a "magically" (distinct/exceptional) struct
             "\
              /**\n\
               * Automatically created using `codegen` internal crate.\n\
@@ -143,6 +146,10 @@ impl CFfi {
               \n\
               #include <stdint.h>\n\
               #include <stdbool.h>\n\
+              \n\
+              #include <time.h>\n\
+              \n\
+              typedef struct tm tm;\n\
               \n\
               {typedefs}\
               {structs}\
@@ -226,6 +233,7 @@ impl CFfi {
                 if type_path.qself.is_none() && type_path.path.require_ident().is_ok() =>
             {
                 let ty_str = type_path.to_token_stream().to_string();
+                // TODO add support for core::ffi::* and crate::ffi::* auto removal of prefixes
                 match ty_str.as_str() {
                     "bool" => "bool",
                     "char" => "uint32_t",

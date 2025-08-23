@@ -27,6 +27,9 @@ mod utility;
 #[cfg(feature = "ffi")]
 pub mod ffi;
 
+#[cfg(feature = "c")]
+use ffi::tm;
+
 pub use primitive::*;
 
 pub use crate::utility::DidSaturate;
@@ -569,6 +572,47 @@ impl Date {
     /// Return the value of inner `Self::ordinal` for this instance.
     pub const fn ordinal(&self) -> Ordinal {
         self.ordinal
+    }
+
+    // TODO add functions to calculcate `tm`, `DateTime` and other dates in Gregorian, not only
+    //      Shamsi, for example a pair of `update_tm` and `to_tm` should be there to calculate it
+    //      That needs a dependency that converts the number of days to its valid gregorian. This
+    //      should NOT be implemented here since this is not a gregorian calendar crate.
+    //      As of now, the days can be seeked which can subsequently converted to epoch seconds and
+    //      used in functions like `localtime`.
+
+    /// Convert this [`Self::to_jtm`] but on the given struct.
+    #[cfg(feature = "c")]
+    pub const fn update_jtm(&self, jtm: &mut tm) {
+        use ffi::c_int;
+
+        let monthday = MonthDay::from_ordinal(self.ordinal);
+
+        jtm.tm_mday = monthday.day as c_int;
+        jtm.tm_mon = (monthday.month.get() as c_int) - 1;
+        jtm.tm_year = self.year.get();
+        jtm.tm_yday = (self.ordinal.get() as c_int) - 1;
+    }
+
+    /// Create an [`ffi::tm`] from this date in Jalali.
+    ///
+    /// If the aim is not to create a new instance and update an already created `tm`, use
+    /// [`Self::update_jtm`].
+    ///
+    /// See its documents for how this struct's values should be interpreted when the date is
+    /// assumed to be Jalali. In short, this is exactly as in C but year doesn't have an offset and
+    /// only year, month, ordinal and month day are set.
+    ///
+    /// There are no `from_jtm` equal since there are many ways interprete how this should be done,
+    /// (based on ordinal `yday` or `year`, `mon`, `mday` fields to name two).
+    ///
+    /// To convert this value into a `tm` (Gregorian) use [`Self::diff_epoch`] and then convert that
+    /// to seconds to use with `localtime` and `gmtime`.
+    #[cfg(feature = "c")]
+    pub const fn to_jtm(&self) -> tm {
+        let mut jtm = tm::new_zero();
+        self.update_jtm(&mut jtm);
+        jtm
     }
 }
 

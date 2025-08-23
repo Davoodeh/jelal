@@ -16,6 +16,8 @@
 - Support for `deprecated` in `codegen`.
 - Experimental support for a custom `codegen` replacement for `cbindgen` (namely
   `cffi`, use `make cffi` to test) to generate the C headers.
+- `tm` (`time.h` struct) and `to_jtm` for easier creation of Jalali correct `tm`
+  structs from `Date`
 - `MonthDay::NON_LEAP_LAST_MAX_DAY` and deprecate what it replaces
   `MonthDay::NON_LEAP_LAST_MONTH_DAY_MAX` to be more aligned with other
   `*MAX_DAY` constants
@@ -37,6 +39,7 @@
   - sift to whitelist `cfg` and `cfg_attr` attributes
   - to pass `cfg` attributes to `pymodule` (prevents `cfg` misbehavior)
   - allow `unused_imports`
+  - use `crate::ffi::*` automatically
 
 # `0.4.0`
 

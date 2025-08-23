@@ -5,6 +5,7 @@
 #![allow(deprecated)]
 #![allow(unused_imports)]
 #![cfg_attr(feature = "py", allow(unsafe_op_in_unsafe_fn))]
+use crate::ffi::*;
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 #[allow(unused_imports)]
@@ -82,6 +83,20 @@ impl Date {
         let this = self;
         let this: &crate::Date = &this.clone().into();
         unsafe { ::core::mem::transmute(crate::Date::ordinal(this)) }
+    }
+    #[doc = " Convert this [`Self::to_jtm`] but on the given struct."]
+    #[cfg(feature = "c")]
+    pub fn update_jtm(&self, jtm: &mut tm) {
+        let this = self;
+        let this: &crate::Date = &this.clone().into();
+        unsafe { ::core::mem::transmute(crate::Date::update_jtm(this, &mut jtm.clone().into())) }
+    }
+    #[doc = " Create an [`ffi::tm`] from this date in Jalali.\n\n If the aim is not to create a new instance and update an already created `tm`, use\n [`Self::update_jtm`].\n\n See its documents for how this struct's values should be interpreted when the date is\n assumed to be Jalali. In short, this is exactly as in C but year doesn't have an offset and\n only year, month, ordinal and month day are set.\n\n There are no `from_jtm` equal since there are many ways interprete how this should be done,\n (based on ordinal `yday` or `year`, `mon`, `mday` fields to name two).\n\n To convert this value into a `tm` (Gregorian) use [`Self::diff_epoch`] and then convert that\n to seconds to use with `localtime` and `gmtime`."]
+    #[cfg(feature = "c")]
+    pub fn to_jtm(&self) -> tm {
+        let this = self;
+        let this: &crate::Date = &this.clone().into();
+        unsafe { ::core::mem::transmute(crate::Date::to_jtm(this)) }
     }
 }
 #[doc = " Counts consecutive days for addition and subtraction operations."]
@@ -197,6 +212,10 @@ fn __pymodule(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(_date_ext_from_iyear, m)?)?;
     m.add_function(wrap_pyfunction!(_date_ext_from_year, m)?)?;
     m.add_function(wrap_pyfunction!(_date_ext_cmp, m)?)?;
+    #[cfg(feature = "c")]
+    m.add_function(wrap_pyfunction!(_date_to_jtm, m)?)?;
+    #[cfg(feature = "c")]
+    m.add_function(wrap_pyfunction!(_date_update_jtm, m)?)?;
     m.add_function(wrap_pyfunction!(_date_ordinal, m)?)?;
     m.add_function(wrap_pyfunction!(_date_year, m)?)?;
     m.add_function(wrap_pyfunction!(_date_diff_epoch, m)?)?;
@@ -721,6 +740,34 @@ pub extern "C" fn date_ordinal(this: &Date) -> UOrdinal {
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn _date_ordinal(this: &Date) -> UOrdinal {
     Date::ordinal(&this.clone().into()).into()
+}
+#[doc = " Convert this [`Self::to_jtm`] but on the given struct."]
+#[cfg(feature = "c")]
+#[cfg(feature = "c")]
+#[unsafe(no_mangle)]
+pub extern "C" fn date_update_jtm(this: &Date, jtm: &mut tm) {
+    Date::update_jtm(&this.clone().into(), &mut jtm.clone().into()).into()
+}
+#[doc = " Convert this [`Self::to_jtm`] but on the given struct."]
+#[cfg(feature = "c")]
+#[cfg_attr(feature = "py", pyfunction)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub fn _date_update_jtm(this: &Date, jtm: &mut tm) {
+    Date::update_jtm(&this.clone().into(), &mut jtm.clone().into()).into()
+}
+#[doc = " Create an [`ffi::tm`] from this date in Jalali.\n\n If the aim is not to create a new instance and update an already created `tm`, use\n [`Self::update_jtm`].\n\n See its documents for how this struct's values should be interpreted when the date is\n assumed to be Jalali. In short, this is exactly as in C but year doesn't have an offset and\n only year, month, ordinal and month day are set.\n\n There are no `from_jtm` equal since there are many ways interprete how this should be done,\n (based on ordinal `yday` or `year`, `mon`, `mday` fields to name two).\n\n To convert this value into a `tm` (Gregorian) use [`Self::diff_epoch`] and then convert that\n to seconds to use with `localtime` and `gmtime`."]
+#[cfg(feature = "c")]
+#[cfg(feature = "c")]
+#[unsafe(no_mangle)]
+pub extern "C" fn date_to_jtm(this: &Date) -> tm {
+    Date::to_jtm(&this.clone().into()).into()
+}
+#[doc = " Create an [`ffi::tm`] from this date in Jalali.\n\n If the aim is not to create a new instance and update an already created `tm`, use\n [`Self::update_jtm`].\n\n See its documents for how this struct's values should be interpreted when the date is\n assumed to be Jalali. In short, this is exactly as in C but year doesn't have an offset and\n only year, month, ordinal and month day are set.\n\n There are no `from_jtm` equal since there are many ways interprete how this should be done,\n (based on ordinal `yday` or `year`, `mon`, `mday` fields to name two).\n\n To convert this value into a `tm` (Gregorian) use [`Self::diff_epoch`] and then convert that\n to seconds to use with `localtime` and `gmtime`."]
+#[cfg(feature = "c")]
+#[cfg_attr(feature = "py", pyfunction)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub fn _date_to_jtm(this: &Date) -> tm {
+    Date::to_jtm(&this.clone().into()).into()
 }
 #[cfg_attr(feature = "py", pymethods)]
 impl Date {

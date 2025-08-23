@@ -58,6 +58,8 @@ fn generate_content(items: Vec<Item>) -> TokenStream {
         #[cfg(feature = #WASM_FEATURE)]
         use wasm_bindgen::prelude::*;
 
+        use crate::ffi::*;
+
         #(#items)*
     }
 }
