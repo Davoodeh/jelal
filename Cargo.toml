@@ -1,7 +1,7 @@
 [package]
 name = "jelal"
 version = "0.4.0"
-description = "A minimal Jalali (Persian/Iranian) calendar date convertor"
+description = "A minimal, no-std modern Jalali (Persian/Iranian/Shamsi) calendar for developers with diverse language support (Rust, JS/TS/WASM, C/C++, Python, and more)"
 edition = "2024"
 rust-version = "1.85" # technically much lower, but aim is for 2024
 authors = ["M. Yas. Davoodeh <MYDavoodeh@gmail.com>"]
