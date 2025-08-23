@@ -44,11 +44,7 @@ impl MonthDay {
         unsafe { ::core::mem::transmute(crate::MonthDay::day(this)) }
     }
 }
-#[doc = " A Jalali valid date."]
-#[doc = ""]
-#[doc = " See [`Year`] for more information about year count. [`Self::MIN`] to [`Self::MAX`] is the"]
-#[doc = " representable range (not necessarily all correct in leap calculation or conversion). Year 0 is"]
-#[doc = " not a valid year (see [`Year::ZERO_REPLACEMENT`])."]
+#[doc = " A Jalali valid date.\n\n See [`Year`] for more information about year count. [`Self::MIN`] to [`Self::MAX`] is the\n representable range (not necessarily all correct in leap calculation or conversion). Year 0 is\n not a valid year (see [`Year::ZERO_REPLACEMENT`])."]
 #[cfg_attr(feature = "c", repr(C))]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 #[cfg_attr(feature = "py", pyclass)]
@@ -62,17 +58,13 @@ pub struct Date {
 #[cfg_attr(feature = "py", pymethods)]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 impl Date {
-    #[doc = " Return how many days on this date will result to the given destination."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::diff_as_days_strict`] but returns the value only."]
+    #[doc = " Return how many days on this date will result to the given destination.\n\n This is exactly as [`Self::diff_as_days_strict`] but returns the value only."]
     pub fn diff_as_days(&self, other: Date) -> IDayDiff {
         let this = self;
         let this: &crate::Date = &this.clone().into();
         unsafe { ::core::mem::transmute(crate::Date::diff_as_days(this, other.into())) }
     }
-    #[doc = " Return how many days has passed since or is yet to reach [`Self::EPOCH`]."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::diff_epoch_strict`] but returns the value only."]
+    #[doc = " Return how many days has passed since or is yet to reach [`Self::EPOCH`].\n\n This is exactly as [`Self::diff_epoch_strict`] but returns the value only."]
     pub fn diff_epoch(&self) -> IDayDiff {
         let this = self;
         let this: &crate::Date = &this.clone().into();
@@ -111,9 +103,7 @@ pub type IMonth = i8;
 pub type UOrdinal = u16;
 #[doc = " Signed variant of the default primitive [`UOrdinal`]."]
 pub type IOrdinal = i16;
-#[doc = " The default primitive that holds all the years ([`Year::MIN`] to [`Year::MAX`])."]
-#[doc = ""]
-#[doc = " There is no unsigned equivalent for this type like the others."]
+#[doc = " The default primitive that holds all the years ([`Year::MIN`] to [`Year::MAX`]).\n\n There is no unsigned equivalent for this type like the others."]
 pub type IYear = i32;
 #[doc = " Holds valid months count."]
 #[cfg_attr(feature = "c", repr(transparent))]
@@ -168,10 +158,7 @@ impl Year {
         let this: &crate::Year = &this.clone().into();
         unsafe { ::core::mem::transmute(crate::Year::is_no_leap_correction(this)) }
     }
-    #[doc = " Is this year a leap year (366 days instead of 365)."]
-    #[doc = ""]
-    #[doc = " Calculated using the 33-year rule. Taken from"]
-    #[doc = " <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L161C1-L173C2>"]
+    #[doc = " Is this year a leap year (366 days instead of 365).\n\n Calculated using the 33-year rule. Taken from\n <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L161C1-L173C2>"]
     pub fn is_leap(&self) -> bool {
         let this = self;
         let this: &crate::Year = &this.clone().into();
@@ -328,33 +315,25 @@ pub extern "C" fn monthday_to_ordinal(this: &MonthDay) -> UOrdinal {
 pub fn _monthday_to_ordinal(this: &MonthDay) -> UOrdinal {
     MonthDay::to_ordinal(&this.clone().into()).into()
 }
-#[doc = " Add or sub a value to this month and saturate to the limits."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::add_month_strict`] but returns the value only."]
+#[doc = " Add or sub a value to this month and saturate to the limits.\n\n This is exactly as [`Self::add_month_strict`] but returns the value only."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
 pub extern "C" fn monthday_add_month(this: MonthDay, month: IMonth) -> MonthDay {
     MonthDay::add_month(this.into(), month.into()).into()
 }
-#[doc = " Add or sub a value to this month and saturate to the limits."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::add_month_strict`] but returns the value only."]
+#[doc = " Add or sub a value to this month and saturate to the limits.\n\n This is exactly as [`Self::add_month_strict`] but returns the value only."]
 #[cfg_attr(feature = "py", pyfunction)]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn _monthday_add_month(this: MonthDay, month: IMonth) -> MonthDay {
     MonthDay::add_month(this.into(), month.into()).into()
 }
-#[doc = " Add or sub a value to the day of this and saturate to the limits."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::add_day_strict`] but returns the value only."]
+#[doc = " Add or sub a value to the day of this and saturate to the limits.\n\n This is exactly as [`Self::add_day_strict`] but returns the value only."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
 pub extern "C" fn monthday_add_day(this: MonthDay, day: IMonthDay) -> MonthDay {
     MonthDay::add_day(this.into(), day.into()).into()
 }
-#[doc = " Add or sub a value to the day of this and saturate to the limits."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::add_day_strict`] but returns the value only."]
+#[doc = " Add or sub a value to the day of this and saturate to the limits.\n\n This is exactly as [`Self::add_day_strict`] but returns the value only."]
 #[cfg_attr(feature = "py", pyfunction)]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn _monthday_add_day(this: MonthDay, day: IMonthDay) -> MonthDay {
@@ -428,17 +407,13 @@ impl MonthDay {
 }
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 impl MonthDay {
-    #[doc = " Add or sub a value to this month and saturate to the limits."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::add_month_strict`] but returns the value only."]
+    #[doc = " Add or sub a value to this month and saturate to the limits.\n\n This is exactly as [`Self::add_month_strict`] but returns the value only."]
     pub fn add_month(self, month: IMonth) -> MonthDay {
         let this = self;
         let this: crate::MonthDay = this.into();
         unsafe { ::core::mem::transmute(crate::MonthDay::add_month(this, month.into())) }
     }
-    #[doc = " Add or sub a value to the day of this and saturate to the limits."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::add_day_strict`] but returns the value only."]
+    #[doc = " Add or sub a value to the day of this and saturate to the limits.\n\n This is exactly as [`Self::add_day_strict`] but returns the value only."]
     pub fn add_day(self, day: IMonthDay) -> MonthDay {
         let this = self;
         let this: crate::MonthDay = this.into();
@@ -457,9 +432,7 @@ impl MonthDay {
 #[cfg(feature = "py")]
 #[pymethods]
 impl MonthDay {
-    #[doc = " Add or sub a value to this month and saturate to the limits."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::add_month_strict`] but returns the value only."]
+    #[doc = " Add or sub a value to this month and saturate to the limits.\n\n This is exactly as [`Self::add_month_strict`] but returns the value only."]
     #[cfg(feature = "py")]
     #[pyo3(name = "add_month")]
     fn __py_only_add_month(&self, month: IMonth) -> MonthDay {
@@ -468,9 +441,7 @@ impl MonthDay {
         let this: crate::MonthDay = this.into();
         unsafe { ::core::mem::transmute(crate::MonthDay::add_month(this, month.into())) }
     }
-    #[doc = " Add or sub a value to the day of this and saturate to the limits."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::add_day_strict`] but returns the value only."]
+    #[doc = " Add or sub a value to the day of this and saturate to the limits.\n\n This is exactly as [`Self::add_day_strict`] but returns the value only."]
     #[cfg(feature = "py")]
     #[pyo3(name = "add_day")]
     fn __py_only_add_day(&self, day: IMonthDay) -> MonthDay {
@@ -622,113 +593,85 @@ pub extern "C" fn date_new(year: IYear, ordinal: UOrdinal) -> Date {
 pub fn _date_new(year: IYear, ordinal: UOrdinal) -> Date {
     Date::new(year.into(), ordinal.into()).into()
 }
-#[doc = " Add a year to this date and saturate the results at limits."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::add_year_strict`] but returns the value only."]
+#[doc = " Add a year to this date and saturate the results at limits.\n\n This is exactly as [`Self::add_year_strict`] but returns the value only."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
 pub extern "C" fn date_add_year(this: Date, year: IYear) -> Date {
     Date::add_year(this.into(), year.into()).into()
 }
-#[doc = " Add a year to this date and saturate the results at limits."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::add_year_strict`] but returns the value only."]
+#[doc = " Add a year to this date and saturate the results at limits.\n\n This is exactly as [`Self::add_year_strict`] but returns the value only."]
 #[cfg_attr(feature = "py", pyfunction)]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn _date_add_year(this: Date, year: IYear) -> Date {
     Date::add_year(this.into(), year.into()).into()
 }
-#[doc = " Add a ordinal to this date and saturate the results at limits."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::add_ordinal_strict`] but returns the value only."]
+#[doc = " Add a ordinal to this date and saturate the results at limits.\n\n This is exactly as [`Self::add_ordinal_strict`] but returns the value only."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
 pub extern "C" fn date_add_ordinal(this: Date, ordinal: IOrdinal) -> Date {
     Date::add_ordinal(this.into(), ordinal.into()).into()
 }
-#[doc = " Add a ordinal to this date and saturate the results at limits."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::add_ordinal_strict`] but returns the value only."]
+#[doc = " Add a ordinal to this date and saturate the results at limits.\n\n This is exactly as [`Self::add_ordinal_strict`] but returns the value only."]
 #[cfg_attr(feature = "py", pyfunction)]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn _date_add_ordinal(this: Date, ordinal: IOrdinal) -> Date {
     Date::add_ordinal(this.into(), ordinal.into()).into()
 }
-#[doc = " Add a month count to this date and saturate the results at limits."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::add_month_strict`] but returns the value only."]
+#[doc = " Add a month count to this date and saturate the results at limits.\n\n This is exactly as [`Self::add_month_strict`] but returns the value only."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
 pub extern "C" fn date_add_month(this: Date, month: IMonth) -> Date {
     Date::add_month(this.into(), month.into()).into()
 }
-#[doc = " Add a month count to this date and saturate the results at limits."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::add_month_strict`] but returns the value only."]
+#[doc = " Add a month count to this date and saturate the results at limits.\n\n This is exactly as [`Self::add_month_strict`] but returns the value only."]
 #[cfg_attr(feature = "py", pyfunction)]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn _date_add_month(this: Date, month: IMonth) -> Date {
     Date::add_month(this.into(), month.into()).into()
 }
-#[doc = " Add this many consecutive months to this date."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::add_months_strict`] but returns the value only."]
+#[doc = " Add this many consecutive months to this date.\n\n This is exactly as [`Self::add_months_strict`] but returns the value only."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
 pub extern "C" fn date_add_months(this: Date, months: IDayDiff) -> Date {
     Date::add_months(this.into(), months.into()).into()
 }
-#[doc = " Add this many consecutive months to this date."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::add_months_strict`] but returns the value only."]
+#[doc = " Add this many consecutive months to this date.\n\n This is exactly as [`Self::add_months_strict`] but returns the value only."]
 #[cfg_attr(feature = "py", pyfunction)]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn _date_add_months(this: Date, months: IDayDiff) -> Date {
     Date::add_months(this.into(), months.into()).into()
 }
-#[doc = " Add or remove the given number of consecutive days to this date."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::add_days_strict`] but returns the value only."]
+#[doc = " Add or remove the given number of consecutive days to this date.\n\n This is exactly as [`Self::add_days_strict`] but returns the value only."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
 pub extern "C" fn date_add_days(this: Date, days: IDayDiff) -> Date {
     Date::add_days(this.into(), days.into()).into()
 }
-#[doc = " Add or remove the given number of consecutive days to this date."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::add_days_strict`] but returns the value only."]
+#[doc = " Add or remove the given number of consecutive days to this date.\n\n This is exactly as [`Self::add_days_strict`] but returns the value only."]
 #[cfg_attr(feature = "py", pyfunction)]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn _date_add_days(this: Date, days: IDayDiff) -> Date {
     Date::add_days(this.into(), days.into()).into()
 }
-#[doc = " Return how many days on this date will result to the given destination."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::diff_as_days_strict`] but returns the value only."]
+#[doc = " Return how many days on this date will result to the given destination.\n\n This is exactly as [`Self::diff_as_days_strict`] but returns the value only."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
 pub extern "C" fn date_diff_as_days(this: &Date, other: Date) -> IDayDiff {
     Date::diff_as_days(&this.clone().into(), other.into()).into()
 }
-#[doc = " Return how many days on this date will result to the given destination."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::diff_as_days_strict`] but returns the value only."]
+#[doc = " Return how many days on this date will result to the given destination.\n\n This is exactly as [`Self::diff_as_days_strict`] but returns the value only."]
 #[cfg_attr(feature = "py", pyfunction)]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn _date_diff_as_days(this: &Date, other: Date) -> IDayDiff {
     Date::diff_as_days(&this.clone().into(), other.into()).into()
 }
-#[doc = " Return how many days has passed since or is yet to reach [`Self::EPOCH`]."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::diff_epoch_strict`] but returns the value only."]
+#[doc = " Return how many days has passed since or is yet to reach [`Self::EPOCH`].\n\n This is exactly as [`Self::diff_epoch_strict`] but returns the value only."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
 pub extern "C" fn date_diff_epoch(this: &Date) -> IDayDiff {
     Date::diff_epoch(&this.clone().into()).into()
 }
-#[doc = " Return how many days has passed since or is yet to reach [`Self::EPOCH`]."]
-#[doc = ""]
-#[doc = " This is exactly as [`Self::diff_epoch_strict`] but returns the value only."]
+#[doc = " Return how many days has passed since or is yet to reach [`Self::EPOCH`].\n\n This is exactly as [`Self::diff_epoch_strict`] but returns the value only."]
 #[cfg_attr(feature = "py", pyfunction)]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn _date_diff_epoch(this: &Date) -> IDayDiff {
@@ -778,41 +721,31 @@ impl Date {
 }
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 impl Date {
-    #[doc = " Add a year to this date and saturate the results at limits."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::add_year_strict`] but returns the value only."]
+    #[doc = " Add a year to this date and saturate the results at limits.\n\n This is exactly as [`Self::add_year_strict`] but returns the value only."]
     pub fn add_year(self, year: IYear) -> Date {
         let this = self;
         let this: crate::Date = this.into();
         unsafe { ::core::mem::transmute(crate::Date::add_year(this, year.into())) }
     }
-    #[doc = " Add a ordinal to this date and saturate the results at limits."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::add_ordinal_strict`] but returns the value only."]
+    #[doc = " Add a ordinal to this date and saturate the results at limits.\n\n This is exactly as [`Self::add_ordinal_strict`] but returns the value only."]
     pub fn add_ordinal(self, ordinal: IOrdinal) -> Date {
         let this = self;
         let this: crate::Date = this.into();
         unsafe { ::core::mem::transmute(crate::Date::add_ordinal(this, ordinal.into())) }
     }
-    #[doc = " Add a month count to this date and saturate the results at limits."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::add_month_strict`] but returns the value only."]
+    #[doc = " Add a month count to this date and saturate the results at limits.\n\n This is exactly as [`Self::add_month_strict`] but returns the value only."]
     pub fn add_month(self, month: IMonth) -> Date {
         let this = self;
         let this: crate::Date = this.into();
         unsafe { ::core::mem::transmute(crate::Date::add_month(this, month.into())) }
     }
-    #[doc = " Add this many consecutive months to this date."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::add_months_strict`] but returns the value only."]
+    #[doc = " Add this many consecutive months to this date.\n\n This is exactly as [`Self::add_months_strict`] but returns the value only."]
     pub fn add_months(self, months: IDayDiff) -> Date {
         let this = self;
         let this: crate::Date = this.into();
         unsafe { ::core::mem::transmute(crate::Date::add_months(this, months.into())) }
     }
-    #[doc = " Add or remove the given number of consecutive days to this date."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::add_days_strict`] but returns the value only."]
+    #[doc = " Add or remove the given number of consecutive days to this date.\n\n This is exactly as [`Self::add_days_strict`] but returns the value only."]
     pub fn add_days(self, days: IDayDiff) -> Date {
         let this = self;
         let this: crate::Date = this.into();
@@ -827,9 +760,7 @@ impl Date {
 #[cfg(feature = "py")]
 #[pymethods]
 impl Date {
-    #[doc = " Add a year to this date and saturate the results at limits."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::add_year_strict`] but returns the value only."]
+    #[doc = " Add a year to this date and saturate the results at limits.\n\n This is exactly as [`Self::add_year_strict`] but returns the value only."]
     #[cfg(feature = "py")]
     #[pyo3(name = "add_year")]
     fn __py_only_add_year(&self, year: IYear) -> Date {
@@ -838,9 +769,7 @@ impl Date {
         let this: crate::Date = this.into();
         unsafe { ::core::mem::transmute(crate::Date::add_year(this, year.into())) }
     }
-    #[doc = " Add a ordinal to this date and saturate the results at limits."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::add_ordinal_strict`] but returns the value only."]
+    #[doc = " Add a ordinal to this date and saturate the results at limits.\n\n This is exactly as [`Self::add_ordinal_strict`] but returns the value only."]
     #[cfg(feature = "py")]
     #[pyo3(name = "add_ordinal")]
     fn __py_only_add_ordinal(&self, ordinal: IOrdinal) -> Date {
@@ -849,9 +778,7 @@ impl Date {
         let this: crate::Date = this.into();
         unsafe { ::core::mem::transmute(crate::Date::add_ordinal(this, ordinal.into())) }
     }
-    #[doc = " Add a month count to this date and saturate the results at limits."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::add_month_strict`] but returns the value only."]
+    #[doc = " Add a month count to this date and saturate the results at limits.\n\n This is exactly as [`Self::add_month_strict`] but returns the value only."]
     #[cfg(feature = "py")]
     #[pyo3(name = "add_month")]
     fn __py_only_add_month(&self, month: IMonth) -> Date {
@@ -860,9 +787,7 @@ impl Date {
         let this: crate::Date = this.into();
         unsafe { ::core::mem::transmute(crate::Date::add_month(this, month.into())) }
     }
-    #[doc = " Add this many consecutive months to this date."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::add_months_strict`] but returns the value only."]
+    #[doc = " Add this many consecutive months to this date.\n\n This is exactly as [`Self::add_months_strict`] but returns the value only."]
     #[cfg(feature = "py")]
     #[pyo3(name = "add_months")]
     fn __py_only_add_months(&self, months: IDayDiff) -> Date {
@@ -871,9 +796,7 @@ impl Date {
         let this: crate::Date = this.into();
         unsafe { ::core::mem::transmute(crate::Date::add_months(this, months.into())) }
     }
-    #[doc = " Add or remove the given number of consecutive days to this date."]
-    #[doc = ""]
-    #[doc = " This is exactly as [`Self::add_days_strict`] but returns the value only."]
+    #[doc = " Add or remove the given number of consecutive days to this date.\n\n This is exactly as [`Self::add_days_strict`] but returns the value only."]
     #[cfg(feature = "py")]
     #[pyo3(name = "add_days")]
     fn __py_only_add_days(&self, days: IDayDiff) -> Date {
@@ -1231,40 +1154,16 @@ pub extern "C" fn year_new(value: IYear) -> IYear {
 pub fn _year_new(value: IYear) -> IYear {
     Year::new(value.into()).into()
 }
-#[doc = " Persian Wikipedia's list of leap years pre-calculated."]
-#[doc = ""]
-#[doc = " NOTE Do not rely on this."]
+#[doc = " Persian Wikipedia's list of leap years pre-calculated.\n\n NOTE Do not rely on this."]
 pub const YEAR_LEAPS_1210_TO_1500: [IYear; 71] =
     unsafe { ::core::mem::transmute(crate::Year::LEAPS_1210_TO_1500) };
-#[doc = " Persian Wikipedia's list of leap years pre-calculated."]
-#[doc = ""]
-#[doc = " NOTE Do not rely on this."]
+#[doc = " Persian Wikipedia's list of leap years pre-calculated.\n\n NOTE Do not rely on this."]
 #[unsafe(export_name = "YEAR_LEAPS_1210_TO_1500")]
 pub static _YEAR_LEAPS_1210_TO_1500: [IYear; 71] = YEAR_LEAPS_1210_TO_1500;
-#[doc = " Years that are not leap while 33-year rule marks them as leap."]
-#[doc = ""]
-#[doc = " \"All these years are not leap, while they are considered leap by the 33-year"]
-#[doc = " rule. The year following each of them is leap, but it's considered non-leap"]
-#[doc = " by the 33-year rule. This table has been tested to match the modified"]
-#[doc = " astronomical algorithm based on the 52.5 degrees east meridian from 1178 AP"]
-#[doc = " (an arbitrary date before the Persian calendar was adopted in 1304 AP) to"]
-#[doc = " 3000 AP (an arbitrary date far into the future).\""]
-#[doc = ""]
-#[doc = " Taken from"]
-#[doc = " <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L23>"]
+#[doc = " Years that are not leap while 33-year rule marks them as leap.\n\n \"All these years are not leap, while they are considered leap by the 33-year\n rule. The year following each of them is leap, but it's considered non-leap\n by the 33-year rule. This table has been tested to match the modified\n astronomical algorithm based on the 52.5 degrees east meridian from 1178 AP\n (an arbitrary date before the Persian calendar was adopted in 1304 AP) to\n 3000 AP (an arbitrary date far into the future).\"\n\n Taken from\n <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L23>"]
 pub const YEAR_NON_LEAP_CORRECTION: [IYear; 78] =
     unsafe { ::core::mem::transmute(crate::Year::NON_LEAP_CORRECTION) };
-#[doc = " Years that are not leap while 33-year rule marks them as leap."]
-#[doc = ""]
-#[doc = " \"All these years are not leap, while they are considered leap by the 33-year"]
-#[doc = " rule. The year following each of them is leap, but it's considered non-leap"]
-#[doc = " by the 33-year rule. This table has been tested to match the modified"]
-#[doc = " astronomical algorithm based on the 52.5 degrees east meridian from 1178 AP"]
-#[doc = " (an arbitrary date before the Persian calendar was adopted in 1304 AP) to"]
-#[doc = " 3000 AP (an arbitrary date far into the future).\""]
-#[doc = ""]
-#[doc = " Taken from"]
-#[doc = " <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L23>"]
+#[doc = " Years that are not leap while 33-year rule marks them as leap.\n\n \"All these years are not leap, while they are considered leap by the 33-year\n rule. The year following each of them is leap, but it's considered non-leap\n by the 33-year rule. This table has been tested to match the modified\n astronomical algorithm based on the 52.5 degrees east meridian from 1178 AP\n (an arbitrary date before the Persian calendar was adopted in 1304 AP) to\n 3000 AP (an arbitrary date far into the future).\"\n\n Taken from\n <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L23>"]
 #[unsafe(export_name = "YEAR_NON_LEAP_CORRECTION")]
 pub static _YEAR_NON_LEAP_CORRECTION: [IYear; 78] = YEAR_NON_LEAP_CORRECTION;
 #[doc = " A search into [`Self::NON_LEAP_CORRECTION`]."]
@@ -1281,20 +1180,14 @@ pub fn _year_is_no_leap_correction(this: IYear) -> bool {
     let this: Year = this.into();
     Year::is_no_leap_correction(&this).into()
 }
-#[doc = " Is this year a leap year (366 days instead of 365)."]
-#[doc = ""]
-#[doc = " Calculated using the 33-year rule. Taken from"]
-#[doc = " <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L161C1-L173C2>"]
+#[doc = " Is this year a leap year (366 days instead of 365).\n\n Calculated using the 33-year rule. Taken from\n <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L161C1-L173C2>"]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
 pub extern "C" fn year_is_leap(this: IYear) -> bool {
     let this: Year = this.into();
     Year::is_leap(&this).into()
 }
-#[doc = " Is this year a leap year (366 days instead of 365)."]
-#[doc = ""]
-#[doc = " Calculated using the 33-year rule. Taken from"]
-#[doc = " <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L161C1-L173C2>"]
+#[doc = " Is this year a leap year (366 days instead of 365).\n\n Calculated using the 33-year rule. Taken from\n <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L161C1-L173C2>"]
 #[cfg_attr(feature = "py", pyfunction)]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn _year_is_leap(this: IYear) -> bool {
@@ -1340,22 +1233,10 @@ impl Year {
     #[doc = " The source of truth for the zero replacement value (-1 is before year 1, skipping 0)."]
     pub const ZERO_REPLACEMENT: Self =
         unsafe { ::core::mem::transmute(crate::Year::ZERO_REPLACEMENT) };
-    #[doc = " Persian Wikipedia's list of leap years pre-calculated."]
-    #[doc = ""]
-    #[doc = " NOTE Do not rely on this."]
+    #[doc = " Persian Wikipedia's list of leap years pre-calculated.\n\n NOTE Do not rely on this."]
     pub const LEAPS_1210_TO_1500: [Self; 71] =
         unsafe { ::core::mem::transmute(crate::Year::LEAPS_1210_TO_1500) };
-    #[doc = " Years that are not leap while 33-year rule marks them as leap."]
-    #[doc = ""]
-    #[doc = " \"All these years are not leap, while they are considered leap by the 33-year"]
-    #[doc = " rule. The year following each of them is leap, but it's considered non-leap"]
-    #[doc = " by the 33-year rule. This table has been tested to match the modified"]
-    #[doc = " astronomical algorithm based on the 52.5 degrees east meridian from 1178 AP"]
-    #[doc = " (an arbitrary date before the Persian calendar was adopted in 1304 AP) to"]
-    #[doc = " 3000 AP (an arbitrary date far into the future).\""]
-    #[doc = ""]
-    #[doc = " Taken from"]
-    #[doc = " <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L23>"]
+    #[doc = " Years that are not leap while 33-year rule marks them as leap.\n\n \"All these years are not leap, while they are considered leap by the 33-year\n rule. The year following each of them is leap, but it's considered non-leap\n by the 33-year rule. This table has been tested to match the modified\n astronomical algorithm based on the 52.5 degrees east meridian from 1178 AP\n (an arbitrary date before the Persian calendar was adopted in 1304 AP) to\n 3000 AP (an arbitrary date far into the future).\"\n\n Taken from\n <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L23>"]
     pub const NON_LEAP_CORRECTION: [Self; 78] =
         unsafe { ::core::mem::transmute(crate::Year::NON_LEAP_CORRECTION) };
 }

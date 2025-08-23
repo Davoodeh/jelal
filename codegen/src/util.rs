@@ -5,7 +5,7 @@ use std::io::Write;
 use quote::ToTokens;
 use syn::{
     parse::{Parse, Parser},
-    Ident, Item,
+    parse_quote, Ident, Item,
 };
 
 use crate::FILES_PREFIX;
@@ -92,5 +92,45 @@ pub fn name_value_str<'attr, 'ident>(
     match attr.meta.require_name_value() {
         Ok(kv) if attr.path().is_ident(ident) => lit_str_expr(&kv.value),
         _ => None,
+    }
+}
+
+/// Collapse literal string `doc` attributes regardless of their position.
+///
+/// This merges each `doc` with its previous if both are literal string. Using `expand`-like
+/// commands most `doc` values should be str and have a higher chance of total merge.
+//
+// Link to the reference, cluster all the docs together and merge the strings
+// TODO break to many lines to make for a tidier output
+pub fn collapse_docs(attrs: &mut Vec<syn::Attribute>) {
+    let mut previous: Option<(String, usize)> = None; // cache the string and its position in attrs
+
+    let mut current_index = 0;
+    while current_index < attrs.len() {
+        match (name_value_str(&attrs[current_index], "doc"), &mut previous) {
+            // if there are any previous_attr (literal string docs), concat with them, else move on
+            (Some(current_doc), Some((previous_doc, previous_index))) => {
+                // unwraps work since the previous was selected knowing it matches this.
+                previous_doc.push('\n');
+                previous_doc.push_str(&current_doc.value());
+
+                // concat with the previous attribute
+                attrs[*previous_index] = parse_quote! { #[doc = #previous_doc] };
+
+                // upon concatination, remove the value since it's already in the previous
+                attrs.remove(current_index);
+
+                // this is safe since the first (0, cause of underflow) cannot come here since a
+                // "previous" is required
+                current_index -= 1;
+            }
+            // keep this as the "previous" for the next iteration if an str doc
+            (Some(current_doc), None) => previous = Some((current_doc.value(), current_index)),
+            // if this doc is not a literal string, then the next values must not add to its
+            // previous since the "succession chain" of literals is broken.
+            (None, _) => previous = None,
+        }
+
+        current_index += 1;
     }
 }

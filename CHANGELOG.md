@@ -19,6 +19,7 @@
     produced.
   - `codegen` the crate now holds multiple binaries and the previous `main.rs`
     is renamed as `codegen.rs`.
+  - to collapse documents (just a visual change for now)
 
 # `0.4.0`
 

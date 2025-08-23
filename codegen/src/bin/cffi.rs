@@ -183,7 +183,9 @@ impl CFfi {
     /// Has a trailing "\n" if a valid line.
     ///
     /// This function only takes the first doc that is a literal string. It's suggested to collapse
-    /// the documents using `expand`-like commands or `collapse-doc` runs.
+    /// the documents using `expand`-like commands or `collapse-doc` runs or
+    /// [`codegen::util::collapse_docs`].  Since the input comes directly from the `codegen` binary,
+    /// this is already the case.
     fn doc(attrs: &Vec<syn::Attribute>) -> String {
         let Some(str_doc) = attrs
             .iter()

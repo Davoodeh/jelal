@@ -48,6 +48,7 @@
 //!   `transmute` and `into`.
 //! - All trait functions will have a common prefix not to interfere with other functions with the
 //!   same name.
+//! - All documents will be collapsed (see [`collapse_docs`]).
 //!
 //! Special methods:
 //! - methods with the same name as fields are assumed to be getters and if not
@@ -70,7 +71,7 @@ use quote::{format_ident, quote, ToTokens};
 use crate::{
     resolve_type::TypeResolver,
     sift::Sift,
-    util::{as_ident, lit_str_expr, remove_empty_items},
+    util::{as_ident, collapse_docs, lit_str_expr, remove_empty_items},
     C_FEATURE, LIB_NAME, PY_FEATURE, WASM_FEATURE,
 };
 
@@ -650,9 +651,15 @@ impl VisitMut for RustFfi {
                 attr_index += 2;
             }
 
-            self.visit_attribute_mut(&mut i[attr_index]);
-
             attr_index += 1;
+        }
+
+        // merge all the docs
+        collapse_docs(i);
+
+        // after all the process, delegate
+        for attr in i.iter_mut() {
+            self.visit_attribute_mut(attr);
         }
     }
 
