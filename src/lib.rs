@@ -199,10 +199,12 @@ impl MonthDay {
     pub const fn get(&self) -> (Month, UMonthDay) {
         (self.month, self.day)
     }
+
     /// Return the value of inner `Self::month` for this instance.
     pub const fn month(&self) -> Month {
         self.month
     }
+
     /// Return the value of inner `Self::day` for this instance.
     pub const fn day(&self) -> UMonthDay {
         self.day
@@ -558,10 +560,12 @@ impl Date {
     pub const fn get(&self) -> (Year, Ordinal) {
         (self.year, self.ordinal)
     }
+
     /// Return the value of inner `Self::year` for this instance.
     pub const fn year(&self) -> Year {
         self.year
     }
+
     /// Return the value of inner `Self::ordinal` for this instance.
     pub const fn ordinal(&self) -> Ordinal {
         self.ordinal
