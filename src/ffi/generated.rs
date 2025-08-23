@@ -3,6 +3,7 @@
 #![doc = r""]
 #![doc = r" Modify the source that source for control on what to include and how."]
 #![allow(deprecated)]
+#![allow(unused_imports)]
 #![cfg_attr(feature = "py", allow(unsafe_op_in_unsafe_fn))]
 #[cfg(feature = "py")]
 use pyo3::prelude::*;

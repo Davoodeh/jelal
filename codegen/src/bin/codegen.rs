@@ -44,6 +44,7 @@ fn generate_content(items: Vec<Item>) -> TokenStream {
         //! Modify the source that source for control on what to include and how.
 
         #![allow(deprecated)]
+        #![allow(unused_imports)]
 
         #![cfg_attr(feature = #PY_FEATURE, allow(unsafe_op_in_unsafe_fn))]
 

@@ -36,6 +36,7 @@
   - to collapse documents (just a visual change for now)
   - sift to whitelist `cfg` and `cfg_attr` attributes
   - to pass `cfg` attributes to `pymodule` (prevents `cfg` misbehavior)
+  - allow `unused_imports`
 
 # `0.4.0`
 
