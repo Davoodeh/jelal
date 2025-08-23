@@ -252,14 +252,28 @@ pub const MONTHDAY_POST_MID_MAX_DAY: UMonthDay = crate::MonthDay::POST_MID_MAX_D
 #[unsafe(export_name = "MONTHDAY_POST_MID_MAX_DAY")]
 pub static _MONTHDAY_POST_MID_MAX_DAY: UMonthDay = MONTHDAY_POST_MID_MAX_DAY;
 #[doc = " The maximum of the last month in a non-leap year."]
+pub const MONTHDAY_NON_LEAP_LAST_MAX_DAY: UMonthDay = crate::MonthDay::NON_LEAP_LAST_MAX_DAY;
+#[doc = " The maximum of the last month in a non-leap year."]
+#[unsafe(export_name = "MONTHDAY_NON_LEAP_LAST_MAX_DAY")]
+pub static _MONTHDAY_NON_LEAP_LAST_MAX_DAY: UMonthDay = MONTHDAY_NON_LEAP_LAST_MAX_DAY;
+#[doc = " Deprecated: use [`Self::NON_LEAP_LAST_MAX_DAY`] instead (since `0.4.1`).\n\n The maximum of the last month in a non-leap year."]
+#[deprecated(since = "0.4.1", note = "use [`Self::NON_LEAP_LAST_MAX_DAY`] instead")]
 pub const MONTHDAY_NON_LEAP_LAST_MONTH_DAY_MAX: UMonthDay =
     crate::MonthDay::NON_LEAP_LAST_MONTH_DAY_MAX;
-#[doc = " The maximum of the last month in a non-leap year."]
+#[doc = " Deprecated: use [`Self::NON_LEAP_LAST_MAX_DAY`] instead (since `0.4.1`).\n\n The maximum of the last month in a non-leap year."]
+#[deprecated(since = "0.4.1", note = "use [`Self::NON_LEAP_LAST_MAX_DAY`] instead")]
 #[unsafe(export_name = "MONTHDAY_NON_LEAP_LAST_MONTH_DAY_MAX")]
 pub static _MONTHDAY_NON_LEAP_LAST_MONTH_DAY_MAX: UMonthDay = MONTHDAY_NON_LEAP_LAST_MONTH_DAY_MAX;
 #[doc = " The maximum of the last month in a leap year."]
-pub const MONTHDAY_LEAP_LAST_MONTH_DAY_MAX: UMonthDay = crate::MonthDay::LEAP_LAST_MONTH_DAY_MAX;
+pub const MONTHDAY_LEAP_LAST_MAX_DAY: UMonthDay = crate::MonthDay::LEAP_LAST_MAX_DAY;
 #[doc = " The maximum of the last month in a leap year."]
+#[unsafe(export_name = "MONTHDAY_LEAP_LAST_MAX_DAY")]
+pub static _MONTHDAY_LEAP_LAST_MAX_DAY: UMonthDay = MONTHDAY_LEAP_LAST_MAX_DAY;
+#[doc = " Deprecated: use [`Self::LEAP_LAST_MAX_DAY`] instead (since `0.4.1`).\n\n The maximum of the last month in a leap year."]
+#[deprecated(since = "0.4.1", note = "use [`Self::LEAP_LAST_MAX_DAY`] instead")]
+pub const MONTHDAY_LEAP_LAST_MONTH_DAY_MAX: UMonthDay = crate::MonthDay::LEAP_LAST_MONTH_DAY_MAX;
+#[doc = " Deprecated: use [`Self::LEAP_LAST_MAX_DAY`] instead (since `0.4.1`).\n\n The maximum of the last month in a leap year."]
+#[deprecated(since = "0.4.1", note = "use [`Self::LEAP_LAST_MAX_DAY`] instead")]
 #[unsafe(export_name = "MONTHDAY_LEAP_LAST_MONTH_DAY_MAX")]
 pub static _MONTHDAY_LEAP_LAST_MONTH_DAY_MAX: UMonthDay = MONTHDAY_LEAP_LAST_MONTH_DAY_MAX;
 #[doc = " The day of month in Jalali for Unix Epoch."]
@@ -278,7 +292,7 @@ pub static _MONTHDAY_MIN: MonthDay = MONTHDAY_MIN;
 #[doc = " The maxmium valid this inner type, everything saturates to this if greater."]
 pub const MONTHDAY_MAX: MonthDay = MonthDay {
     month: Month::MAX,
-    day: crate::MonthDay::LEAP_LAST_MONTH_DAY_MAX,
+    day: crate::MonthDay::LEAP_LAST_MAX_DAY,
 };
 #[doc = " The maxmium valid this inner type, everything saturates to this if greater."]
 #[unsafe(export_name = "MONTHDAY_MAX")]
@@ -384,8 +398,14 @@ impl MonthDay {
     #[doc = " The maximum number of days in a month post [`Month::MID`]."]
     pub const POST_MID_MAX_DAY: UMonthDay = crate::MonthDay::POST_MID_MAX_DAY;
     #[doc = " The maximum of the last month in a non-leap year."]
+    pub const NON_LEAP_LAST_MAX_DAY: UMonthDay = crate::MonthDay::NON_LEAP_LAST_MAX_DAY;
+    #[doc = " Deprecated: use [`Self::NON_LEAP_LAST_MAX_DAY`] instead (since `0.4.1`).\n\n The maximum of the last month in a non-leap year."]
+    #[deprecated(since = "0.4.1", note = "use [`Self::NON_LEAP_LAST_MAX_DAY`] instead")]
     pub const NON_LEAP_LAST_MONTH_DAY_MAX: UMonthDay = crate::MonthDay::NON_LEAP_LAST_MONTH_DAY_MAX;
     #[doc = " The maximum of the last month in a leap year."]
+    pub const LEAP_LAST_MAX_DAY: UMonthDay = crate::MonthDay::LEAP_LAST_MAX_DAY;
+    #[doc = " Deprecated: use [`Self::LEAP_LAST_MAX_DAY`] instead (since `0.4.1`).\n\n The maximum of the last month in a leap year."]
+    #[deprecated(since = "0.4.1", note = "use [`Self::LEAP_LAST_MAX_DAY`] instead")]
     pub const LEAP_LAST_MONTH_DAY_MAX: UMonthDay = crate::MonthDay::LEAP_LAST_MONTH_DAY_MAX;
     #[doc = " The day of month in Jalali for Unix Epoch."]
     pub const EPOCH_DAY: UMonthDay = crate::MonthDay::EPOCH_DAY;
@@ -397,7 +417,7 @@ impl MonthDay {
     #[doc = " The maxmium valid this inner type, everything saturates to this if greater."]
     pub const MAX: Self = MonthDay {
         month: Month::MAX,
-        day: crate::MonthDay::LEAP_LAST_MONTH_DAY_MAX,
+        day: crate::MonthDay::LEAP_LAST_MAX_DAY,
     };
     #[doc = " Unix Epoch in this format."]
     pub const EPOCH: Self = MonthDay {

@@ -4,6 +4,11 @@
 
 - Default `headers` task to `cffi`.
 
+## Remove
+
+- deprecated `MonthDay::LEAP_LAST_MONTH_DAY_MAX`.
+- deprecated `MonthDay::NON_LEAP_LAST_MONTH_DAY_MAX`.
+
 # `0.4.1`
 
 ## Add
@@ -11,9 +16,18 @@
 - Support for `deprecated` in `codegen`.
 - Experimental support for a custom `codegen` replacement for `cbindgen` (namely
   `cffi`, use `make cffi` to test) to generate the C headers.
+- `MonthDay::NON_LEAP_LAST_MAX_DAY` and deprecate what it replaces
+  `MonthDay::NON_LEAP_LAST_MONTH_DAY_MAX` to be more aligned with other
+  `*MAX_DAY` constants
+- `MonthDay::LEAP_LAST_MAX_DAY` and deprecate what it replaces
+  `MonthDay::LEAP_LAST_MONTH_DAY_MAX` to be more aligned with other `*MAX_DAY`
+  constants
 
 ## Change
 
+- `MonthDay::LEAP_LAST_MONTH_DAY_MAX` and
+  `MonthDay::NON_LEAP_LAST_MONTH_DAY_MAX` to deprecated. Use the added
+  alternatives.
 - codegen:
   - `ImplConst` items are now visited beforetheir duplicate global were
     produced.

@@ -52,10 +52,18 @@ impl MonthDay {
     pub const POST_MID_MAX_DAY: UMonthDay = Self::MAX_DAY - 1;
 
     /// The maximum of the last month in a non-leap year.
-    pub const NON_LEAP_LAST_MONTH_DAY_MAX: UMonthDay = 29;
+    pub const NON_LEAP_LAST_MAX_DAY: UMonthDay = 29;
+
+    /// The maximum of the last month in a non-leap year.
+    #[deprecated(since = "0.4.1", note = "use [`Self::NON_LEAP_LAST_MAX_DAY`] instead")]
+    pub const NON_LEAP_LAST_MONTH_DAY_MAX: UMonthDay = Self::NON_LEAP_LAST_MAX_DAY;
 
     /// The maximum of the last month in a leap year.
-    pub const LEAP_LAST_MONTH_DAY_MAX: UMonthDay = Self::NON_LEAP_LAST_MONTH_DAY_MAX + 1;
+    pub const LEAP_LAST_MAX_DAY: UMonthDay = Self::NON_LEAP_LAST_MAX_DAY + 1;
+
+    /// The maximum of the last month in a leap year.
+    #[deprecated(since = "0.4.1", note = "use [`Self::LEAP_LAST_MAX_DAY`] instead")]
+    pub const LEAP_LAST_MONTH_DAY_MAX: UMonthDay = Self::LEAP_LAST_MAX_DAY;
 
     /// The day of month in Jalali for Unix Epoch.
     pub const EPOCH_DAY: UMonthDay = 11;
@@ -69,7 +77,7 @@ impl MonthDay {
     /// The maxmium valid this inner type, everything saturates to this if greater.
     pub const MAX: Self = Self {
         month: Month::MAX,
-        day: Self::LEAP_LAST_MONTH_DAY_MAX,
+        day: Self::LEAP_LAST_MAX_DAY,
     };
 
     /// Unix Epoch in this format.
@@ -646,7 +654,7 @@ mod tests {
     #[test]
     fn test_month_day_max() {
         let from_ordinal: MonthDay = Ordinal::MAX.into();
-        assert_eq!(from_ordinal.day(), MonthDay::LEAP_LAST_MONTH_DAY_MAX);
+        assert_eq!(from_ordinal.day(), MonthDay::LEAP_LAST_MAX_DAY);
         assert_eq!(from_ordinal.month(), Month::MAX);
         assert_eq!(from_ordinal, MonthDay::MAX);
     }
