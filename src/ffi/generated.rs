@@ -251,32 +251,59 @@ impl From<crate::MonthDay> for MonthDay {
 }
 #[doc = " The minimum possible day, the start of every month."]
 pub const MONTHDAY_MIN_DAY: UMonthDay = crate::MonthDay::MIN_DAY;
+#[doc = " The minimum possible day, the start of every month."]
+#[unsafe(export_name = "MONTHDAY_MIN_DAY")]
+pub static _MONTHDAY_MIN_DAY: UMonthDay = MONTHDAY_MIN_DAY;
 #[doc = " The maximum day count of the year (for months prior to [`Month::MID`] or start of fall)."]
 pub const MONTHDAY_MAX_DAY: UMonthDay = crate::MonthDay::MAX_DAY;
+#[doc = " The maximum day count of the year (for months prior to [`Month::MID`] or start of fall)."]
+#[unsafe(export_name = "MONTHDAY_MAX_DAY")]
+pub static _MONTHDAY_MAX_DAY: UMonthDay = MONTHDAY_MAX_DAY;
 #[doc = " The maximum number of days in a month post [`Month::MID`]."]
 pub const MONTHDAY_POST_MID_MAX_DAY: UMonthDay = crate::MonthDay::POST_MID_MAX_DAY;
+#[doc = " The maximum number of days in a month post [`Month::MID`]."]
+#[unsafe(export_name = "MONTHDAY_POST_MID_MAX_DAY")]
+pub static _MONTHDAY_POST_MID_MAX_DAY: UMonthDay = MONTHDAY_POST_MID_MAX_DAY;
 #[doc = " The maximum of the last month in a non-leap year."]
 pub const MONTHDAY_NON_LEAP_LAST_MONTH_DAY_MAX: UMonthDay =
     crate::MonthDay::NON_LEAP_LAST_MONTH_DAY_MAX;
+#[doc = " The maximum of the last month in a non-leap year."]
+#[unsafe(export_name = "MONTHDAY_NON_LEAP_LAST_MONTH_DAY_MAX")]
+pub static _MONTHDAY_NON_LEAP_LAST_MONTH_DAY_MAX: UMonthDay = MONTHDAY_NON_LEAP_LAST_MONTH_DAY_MAX;
 #[doc = " The maximum of the last month in a leap year."]
 pub const MONTHDAY_LEAP_LAST_MONTH_DAY_MAX: UMonthDay = crate::MonthDay::LEAP_LAST_MONTH_DAY_MAX;
+#[doc = " The maximum of the last month in a leap year."]
+#[unsafe(export_name = "MONTHDAY_LEAP_LAST_MONTH_DAY_MAX")]
+pub static _MONTHDAY_LEAP_LAST_MONTH_DAY_MAX: UMonthDay = MONTHDAY_LEAP_LAST_MONTH_DAY_MAX;
 #[doc = " The day of month in Jalali for Unix Epoch."]
 pub const MONTHDAY_EPOCH_DAY: UMonthDay = crate::MonthDay::EPOCH_DAY;
+#[doc = " The day of month in Jalali for Unix Epoch."]
+#[unsafe(export_name = "MONTHDAY_EPOCH_DAY")]
+pub static _MONTHDAY_EPOCH_DAY: UMonthDay = MONTHDAY_EPOCH_DAY;
 #[doc = " The minimum valid this inner type, everything saturates to this if less."]
 pub const MONTHDAY_MIN: MonthDay = MonthDay {
     month: Month::MIN,
     day: crate::MonthDay::MIN_DAY,
 };
+#[doc = " The minimum valid this inner type, everything saturates to this if less."]
+#[unsafe(export_name = "MONTHDAY_MIN")]
+pub static _MONTHDAY_MIN: MonthDay = MONTHDAY_MIN;
 #[doc = " The maxmium valid this inner type, everything saturates to this if greater."]
 pub const MONTHDAY_MAX: MonthDay = MonthDay {
     month: Month::MAX,
     day: crate::MonthDay::LEAP_LAST_MONTH_DAY_MAX,
 };
+#[doc = " The maxmium valid this inner type, everything saturates to this if greater."]
+#[unsafe(export_name = "MONTHDAY_MAX")]
+pub static _MONTHDAY_MAX: MonthDay = MONTHDAY_MAX;
 #[doc = " Unix Epoch in this format."]
 pub const MONTHDAY_EPOCH: MonthDay = MonthDay {
     month: Month::EPOCH,
     day: crate::MonthDay::EPOCH_DAY,
 };
+#[doc = " Unix Epoch in this format."]
+#[unsafe(export_name = "MONTHDAY_EPOCH")]
+pub static _MONTHDAY_EPOCH: MonthDay = MONTHDAY_EPOCH;
 #[doc = " Create a new valid instance and slightly saturate and modify to fit a valid instance."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
@@ -564,16 +591,25 @@ pub const DATE_MIN: Date = Date {
     year: Year::MIN,
     ordinal: Ordinal::MIN,
 };
+#[doc = " The furthest in the past that can be represented with this struct."]
+#[unsafe(export_name = "DATE_MIN")]
+pub static _DATE_MIN: Date = DATE_MIN;
 #[doc = " The furthest in the future that can be represented with this struct."]
 pub const DATE_MAX: Date = Date {
     year: Year::MAX,
     ordinal: Ordinal::MAX,
 };
+#[doc = " The furthest in the future that can be represented with this struct."]
+#[unsafe(export_name = "DATE_MAX")]
+pub static _DATE_MAX: Date = DATE_MAX;
 #[doc = " Unix Epoch in this format (equivalent to Gregorian 1st of January [`MonthDay`], 1970)."]
 pub const DATE_EPOCH: Date = Date {
     year: Year::EPOCH,
     ordinal: Ordinal::EPOCH,
 };
+#[doc = " Unix Epoch in this format (equivalent to Gregorian 1st of January [`MonthDay`], 1970)."]
+#[unsafe(export_name = "DATE_EPOCH")]
+pub static _DATE_EPOCH: Date = DATE_EPOCH;
 #[doc = " Create a new Jalali date or slightly change values to be valid."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
@@ -952,12 +988,24 @@ impl Into<UMonth> for Month {
 }
 #[doc = " Unix Epoch in this format (equivalent to Gregorian January (1st) in 1970, [`Year::EPOCH`])."]
 pub const MONTH_EPOCH: UMonth = unsafe { ::core::mem::transmute(crate::Month::EPOCH) };
+#[doc = " Unix Epoch in this format (equivalent to Gregorian January (1st) in 1970, [`Year::EPOCH`])."]
+#[unsafe(export_name = "MONTH_EPOCH")]
+pub static _MONTH_EPOCH: UMonth = MONTH_EPOCH;
 #[doc = " The first month of the Jalali year; 1: Farvardin."]
 pub const MONTH_MIN: UMonth = unsafe { ::core::mem::transmute(crate::Month::MIN) };
+#[doc = " The first month of the Jalali year; 1: Farvardin."]
+#[unsafe(export_name = "MONTH_MIN")]
+pub static _MONTH_MIN: UMonth = MONTH_MIN;
 #[doc = " The start of the second half of the year in months."]
 pub const MONTH_MID: UMonth = unsafe { ::core::mem::transmute(crate::Month::MID) };
+#[doc = " The start of the second half of the year in months."]
+#[unsafe(export_name = "MONTH_MID")]
+pub static _MONTH_MID: UMonth = MONTH_MID;
 #[doc = " The last month of the Jalali year; 12: Esfand."]
 pub const MONTH_MAX: UMonth = unsafe { ::core::mem::transmute(crate::Month::MAX) };
+#[doc = " The last month of the Jalali year; 12: Esfand."]
+#[unsafe(export_name = "MONTH_MAX")]
+pub static _MONTH_MAX: UMonth = MONTH_MAX;
 #[doc = " Convert a valid month to ordinal assuming 0th day of the month (-1) if month is valid."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
@@ -1049,15 +1097,30 @@ impl Into<UOrdinal> for Ordinal {
 }
 #[doc = " Unix Epoch in this format (equivalent to Gregorian 1st of January, 1970, [`Year::EPOCH`])."]
 pub const ORDINAL_EPOCH: UOrdinal = unsafe { ::core::mem::transmute(crate::Ordinal::EPOCH) };
+#[doc = " Unix Epoch in this format (equivalent to Gregorian 1st of January, 1970, [`Year::EPOCH`])."]
+#[unsafe(export_name = "ORDINAL_EPOCH")]
+pub static _ORDINAL_EPOCH: UOrdinal = ORDINAL_EPOCH;
 #[doc = " Marks the first day of the year for a valid calendar year (this struct starts from 1)."]
 pub const ORDINAL_MIN: UOrdinal = unsafe { ::core::mem::transmute(crate::Ordinal::MIN) };
+#[doc = " Marks the first day of the year for a valid calendar year (this struct starts from 1)."]
+#[unsafe(export_name = "ORDINAL_MIN")]
+pub static _ORDINAL_MIN: UOrdinal = ORDINAL_MIN;
 #[doc = " The first day after the sixth month of the year (first day of [`Month::MID`])."]
 pub const ORDINAL_MID: UOrdinal = unsafe { ::core::mem::transmute(crate::Ordinal::MID) };
+#[doc = " The first day after the sixth month of the year (first day of [`Month::MID`])."]
+#[unsafe(export_name = "ORDINAL_MID")]
+pub static _ORDINAL_MID: UOrdinal = ORDINAL_MID;
 #[doc = " The absolute maximum day count for any year (leap, 366)."]
 pub const ORDINAL_MAX: UOrdinal = unsafe { ::core::mem::transmute(crate::Ordinal::MAX) };
+#[doc = " The absolute maximum day count for any year (leap, 366)."]
+#[unsafe(export_name = "ORDINAL_MAX")]
+pub static _ORDINAL_MAX: UOrdinal = ORDINAL_MAX;
 #[doc = " The maximum day count for a non-leap year (365)."]
 pub const ORDINAL_MAX_NON_LEAP: UOrdinal =
     unsafe { ::core::mem::transmute(crate::Ordinal::MAX_NON_LEAP) };
+#[doc = " The maximum day count for a non-leap year (365)."]
+#[unsafe(export_name = "ORDINAL_MAX_NON_LEAP")]
+pub static _ORDINAL_MAX_NON_LEAP: UOrdinal = ORDINAL_MAX_NON_LEAP;
 #[doc = " Create a new instance and limit it to [`Self::MIN`] and [`Self::MAX`]."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
@@ -1137,13 +1200,25 @@ impl Into<IYear> for Year {
 }
 #[doc = " Unix Epoch in this format (equivalent to Gregorian 1970)."]
 pub const YEAR_EPOCH: IYear = unsafe { ::core::mem::transmute(crate::Year::EPOCH) };
+#[doc = " Unix Epoch in this format (equivalent to Gregorian 1970)."]
+#[unsafe(export_name = "YEAR_EPOCH")]
+pub static _YEAR_EPOCH: IYear = YEAR_EPOCH;
 #[doc = " The furthest year in the past possible for this struct."]
 pub const YEAR_MIN: IYear = unsafe { ::core::mem::transmute(crate::Year::MIN) };
+#[doc = " The furthest year in the past possible for this struct."]
+#[unsafe(export_name = "YEAR_MIN")]
+pub static _YEAR_MIN: IYear = YEAR_MIN;
 #[doc = " The furthest year in the future possible for this struct."]
 pub const YEAR_MAX: IYear = unsafe { ::core::mem::transmute(crate::Year::MAX) };
+#[doc = " The furthest year in the future possible for this struct."]
+#[unsafe(export_name = "YEAR_MAX")]
+pub static _YEAR_MAX: IYear = YEAR_MAX;
 #[doc = " The source of truth for the zero replacement value (-1 is before year 1, skipping 0)."]
 pub const YEAR_ZERO_REPLACEMENT: IYear =
     unsafe { ::core::mem::transmute(crate::Year::ZERO_REPLACEMENT) };
+#[doc = " The source of truth for the zero replacement value (-1 is before year 1, skipping 0)."]
+#[unsafe(export_name = "YEAR_ZERO_REPLACEMENT")]
+pub static _YEAR_ZERO_REPLACEMENT: IYear = YEAR_ZERO_REPLACEMENT;
 #[doc = " Create a valid year and if 0, replace it with -1 ([`Self::ZERO_REPLACEMENT`] in effect)."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]
@@ -1161,6 +1236,11 @@ pub fn _year_new(value: IYear) -> IYear {
 #[doc = " NOTE Do not rely on this."]
 pub const YEAR_LEAPS_1210_TO_1500: [IYear; 71] =
     unsafe { ::core::mem::transmute(crate::Year::LEAPS_1210_TO_1500) };
+#[doc = " Persian Wikipedia's list of leap years pre-calculated."]
+#[doc = ""]
+#[doc = " NOTE Do not rely on this."]
+#[unsafe(export_name = "YEAR_LEAPS_1210_TO_1500")]
+pub static _YEAR_LEAPS_1210_TO_1500: [IYear; 71] = YEAR_LEAPS_1210_TO_1500;
 #[doc = " Years that are not leap while 33-year rule marks them as leap."]
 #[doc = ""]
 #[doc = " \"All these years are not leap, while they are considered leap by the 33-year"]
@@ -1174,6 +1254,19 @@ pub const YEAR_LEAPS_1210_TO_1500: [IYear; 71] =
 #[doc = " <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L23>"]
 pub const YEAR_NON_LEAP_CORRECTION: [IYear; 78] =
     unsafe { ::core::mem::transmute(crate::Year::NON_LEAP_CORRECTION) };
+#[doc = " Years that are not leap while 33-year rule marks them as leap."]
+#[doc = ""]
+#[doc = " \"All these years are not leap, while they are considered leap by the 33-year"]
+#[doc = " rule. The year following each of them is leap, but it's considered non-leap"]
+#[doc = " by the 33-year rule. This table has been tested to match the modified"]
+#[doc = " astronomical algorithm based on the 52.5 degrees east meridian from 1178 AP"]
+#[doc = " (an arbitrary date before the Persian calendar was adopted in 1304 AP) to"]
+#[doc = " 3000 AP (an arbitrary date far into the future).\""]
+#[doc = ""]
+#[doc = " Taken from"]
+#[doc = " <https://github.com/unicode-org/icu4x/blob/3e3da0a0a34bfe3056d0f89183270ea683f4a23c/utils/calendrical_calculations/src/persian.rs#L23>"]
+#[unsafe(export_name = "YEAR_NON_LEAP_CORRECTION")]
+pub static _YEAR_NON_LEAP_CORRECTION: [IYear; 78] = YEAR_NON_LEAP_CORRECTION;
 #[doc = " A search into [`Self::NON_LEAP_CORRECTION`]."]
 #[cfg(feature = "c")]
 #[unsafe(no_mangle)]

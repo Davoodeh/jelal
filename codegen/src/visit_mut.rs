@@ -915,22 +915,42 @@ impl VisitMut for RustFfi {
 
         // Make a global duplicate of this item out of the impl scope
         // TODO Enable for languages
+        let const_ident = format_ident!(
+            "{}_{}",
+            self.processing_item.to_string().to_ascii_uppercase(),
+            i.ident
+        );
+        let const_ident_str = const_ident.to_string();
+        // TODO add these to other languages since right now there are not much of a use for them
         self.added_items.push(Item::Const(ItemConst {
             attrs: i.attrs.clone(),
             vis: i.vis.clone(),
             const_token: i.const_token.clone(),
-            ident: format_ident!(
-                "{}_{}",
-                self.processing_item.to_string().to_ascii_uppercase(),
-                i.ident
-            ),
+            ident: const_ident.clone(),
             generics: i.generics.clone(),
             colon_token: i.colon_token.clone(),
-            ty: Box::new(ty_deself),
+            ty: Box::new(ty_deself.clone()),
             eq_token: i.eq_token.clone(),
             expr: Box::new(i.expr.clone()),
             semi_token: i.semi_token.clone(),
         }));
+        // C statics since `const` won't be linked
+        let mut item_static = syn::ItemStatic {
+            attrs: i.attrs.clone(),
+            vis: i.vis.clone(),
+            static_token: Default::default(),
+            mutability: syn::StaticMutability::None,
+            ident: format_ident!("_{}", const_ident),
+            colon_token: Default::default(),
+            ty: Box::new(ty_deself),
+            eq_token: i.eq_token.clone(),
+            expr: Box::new(parse_quote! { #const_ident }),
+            semi_token: i.semi_token.clone(),
+        };
+        item_static
+            .attrs
+            .push(parse_quote! { #[unsafe(export_name = #const_ident_str)] });
+        self.added_items.push(Item::Static(item_static));
     }
 
     fn visit_impl_item_fn_mut(&mut self, i: &mut syn::ImplItemFn) {
