@@ -133,9 +133,13 @@ impl VisitMut for Sift {
         visit_file_mut(self, i);
     }
 
-    /// Select `deprecated`, `doc` and `repr` attributes and only that.
+    /// Select `cfg`, `deprecated`, `doc` and `repr` attributes and only that.
+    //
+    // `cfg_attr` is item specific and interpreting it at the moment is just a hassle and too much
+    // work with not great of an outcome. `cfg` on the other hand mostly just enables and disables
+    // the values and has a super simple syntax.
     fn visit_attributes_mut(&mut self, i: &mut Vec<Attribute>) {
-        const SIFT: &[&str] = &["doc", "repr", "deprecated"];
+        const SIFT: &[&str] = &["doc", "repr", "deprecated", "cfg"];
         i.retain_mut(|attr| {
             let keep = SIFT.iter().any(|i| attr.path().is_ident(i));
             if keep {

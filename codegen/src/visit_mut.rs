@@ -182,6 +182,7 @@ impl RustFfi {
             let mut fn_item = fn_item.clone();
             fn_item.sig.ident = format_ident!("{}", fn_item.sig.ident);
             fn_item.sig.abi = parse_quote! { extern "C" };
+            // multiple configs does not hurt even if cfg(c) is already added
             fn_item
                 .attrs
                 .push(parse_quote! { #[cfg(feature = #C_FEATURE)] });
@@ -206,13 +207,13 @@ impl RustFfi {
                 #[cfg_attr(feature = #PY_FEATURE, pyfunction)]
                 #[cfg_attr(feature = #WASM_FEATURE, wasm_bindgen)]
             });
-            self.pymodule_push(&fn_item.sig.ident, true);
+            self.pymodule_push(&fn_item.sig.ident, &fn_item.attrs, true);
             self.added_items.push(Item::Fn(fn_item));
         }
     }
 
     /// Add an item to the pymodule (initialize if not already).
-    fn pymodule_push(&mut self, ident: &Ident, is_fn: bool) {
+    fn pymodule_push(&mut self, ident: &Ident, attrs: &Vec<syn::Attribute>, is_fn: bool) {
         let pymodule = self.pymodule.get_or_insert_with(|| {
             parse_quote! {
                 #[cfg(feature = #PY_FEATURE)]
@@ -223,10 +224,18 @@ impl RustFfi {
             }
         });
 
+        let cfgs = attrs.iter().filter(|i| i.path().is_ident("cfg"));
+
         let stmt = if is_fn {
-            parse_quote! { m.add_function(wrap_pyfunction!(#ident, m)?)?; }
+            parse_quote! {
+                #(#cfgs)*
+                m.add_function(wrap_pyfunction!(#ident, m)?)?;
+            }
         } else {
-            parse_quote! { m.add_class::<#ident>()?; }
+            parse_quote! {
+                #(#cfgs)*
+                m.add_class::<#ident>()?;
+            }
         };
 
         pymodule.block.stmts.insert(0, stmt);
@@ -695,7 +704,7 @@ impl VisitMut for RustFfi {
 
         visit_item_struct_mut(self, i);
 
-        self.pymodule_push(&i.ident, false);
+        self.pymodule_push(&i.ident, &i.attrs, false);
 
         let parent = self.parent();
         let members = i.fields.members().collect::<Vec<_>>();

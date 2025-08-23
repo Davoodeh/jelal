@@ -34,6 +34,8 @@
   - `codegen` the crate now holds multiple binaries and the previous `main.rs`
     is renamed as `codegen.rs`.
   - to collapse documents (just a visual change for now)
+  - sift to whitelist `cfg` and `cfg_attr` attributes
+  - to pass `cfg` attributes to `pymodule` (prevents `cfg` misbehavior)
 
 # `0.4.0`
 
