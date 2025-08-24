@@ -272,8 +272,8 @@ developing.
   if necessary, will host them)
 - Keep changes in as small as possible commits with imperative short
   descriptions.
-- Mention the changes in the changelog in the order of "Change", "Remove" and
-  "Add".
+- Mention the changes in the changelog in the order of "Add", "Change" and
+  "Remove" and "Fix".
 - Run `cargo make pre-commit` before committing which does a lot of unnessary
   checks and takes a really long time to finish but still, better safe.
 - In pervious versions, some features could not work together. This is not
