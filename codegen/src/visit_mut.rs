@@ -335,15 +335,24 @@ impl RustFfi {
         quote! { #and #mutability #usage #clone .into() }
     }
 
-    /// Get `& mut deself_owned deself_dissolved` about an input if not `self`.
+    /// Get `& mut deself_owned deself_dissolved did_deself` about an input if not `self`.
+    // TODO in dire need of clean up
     fn process_input(
         &self,
         input: &FnArg,
-    ) -> Option<(Option<Token![&]>, Option<Token![mut]>, Type, Option<Type>)> {
+    ) -> Option<(
+        Option<Token![&]>,
+        Option<Token![mut]>,
+        Type,
+        Option<Type>,
+        bool,
+    )> {
         let FnArg::Typed(pat_type) = input else {
             return None;
         };
         let deself = self.deself(&pat_type.ty);
+        let did_deself =
+            deself.to_token_stream().to_string() != pat_type.ty.to_token_stream().to_string();
 
         // Convert the pat_type to its primitive (deref) and add a stmt if conversion was needed
         let (and, mutability, deself_owned_tokens) =
@@ -353,7 +362,7 @@ impl RustFfi {
             .map(|i| syn::parse_str::<Type>(i).unwrap());
         let deself_owned = Type::parse.parse2(deself_owned_tokens).unwrap();
 
-        Some((and, mutability, deself_owned, deself_dissolved))
+        Some((and, mutability, deself_owned, deself_dissolved, did_deself))
     }
 
     /// Check if the input to a function is FFI workable or not.
@@ -369,7 +378,9 @@ impl RustFfi {
     /// no `TypeResolver` is utilized in that struct.
     fn is_acceptable_input(&self, input: &FnArg) -> bool {
         self.process_input(input)
-            .map(|(and, mut_, _, dissolved)| and.is_none() || mut_.is_none() || dissolved.is_none())
+            .map(|(and, mut_, _, dissolved, _)| {
+                and.is_none() || mut_.is_none() || dissolved.is_none()
+            })
             .unwrap_or(true)
     }
 
@@ -397,9 +408,9 @@ impl RustFfi {
         let mut argv = Punctuated::new();
         let mut stmts = vec![];
 
+        let parent = self.parent();
         // gather usage and usage-convertor statement for self
         if let Some(receiver) = sig.receiver() {
-            let parent = self.parent();
             let (prefix, postfix) = match &receiver.reference {
                 Some(_) => {
                     let mutability = &receiver.mutability;
@@ -416,7 +427,9 @@ impl RustFfi {
 
         // gather usage and usage-convertor statement for inputs (not self)
         for input in sig.inputs.iter_mut() {
-            let Some((and, mut_, deselfed_owned, dissolved)) = self.process_input(&input) else {
+            let Some((and, mut_, deselfed_owned, dissolved, did_deself)) =
+                self.process_input(&input)
+            else {
                 continue;
             };
             let FnArg::Typed(pat_type) = input else {
@@ -438,6 +451,14 @@ impl RustFfi {
             if and.is_some() && is_dissolved {
                 let pat = &pat_type.pat;
                 stmts.push(parse_quote! { let #pat: #deselfed_owned = #usage; });
+
+                // if this dissolved value was deselfed, the underlying function expects the
+                // original not the deselfed version so this extra is needed just as in the `self`
+                // clause
+                if is_method && did_deself {
+                    stmts.push(parse_quote! { let #pat: #parent = #pat .into(); });
+                }
+
                 argv.push(parse_quote! { &#pat });
             } else {
                 argv.push(parse_quote! { #usage });

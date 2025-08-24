@@ -9,6 +9,15 @@
 - deprecated `MonthDay::LEAP_LAST_MONTH_DAY_MAX`.
 - deprecated `MonthDay::NON_LEAP_LAST_MONTH_DAY_MAX`.
 
+# `0.4.2`
+
+## Fix
+
+- A bug in `codegen` where `Self` typed parameters in methods (not `self`) would
+  generate invalid types which also effected functions. This bug does not effect
+  previous versions but may effect codes in developement so an update is
+  suggested.
+
 # `0.4.1`
 
 ## Add
