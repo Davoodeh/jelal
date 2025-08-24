@@ -1,6 +1,4 @@
 //! Private macros specific to this crate.
-//
-// TODO remove `jelal_proc` and add the final method here
 
 /// Create a primitive (no constructor) that has conversions and add/sub saturating at min..=max.
 ///
@@ -179,5 +177,18 @@ macro_rules! int_wrapper {
 
     ( or $this:tt) => {
         $this
+    };
+}
+
+/// Crudely compare two values to return [`::core::cmp::Ordering`] in const context.
+macro_rules! cmp {
+    ($lhs:expr, $rhs:expr) => {
+        if $lhs < $rhs {
+            ::core::cmp::Ordering::Less
+        } else if $lhs > $rhs {
+            ::core::cmp::Ordering::Greater
+        } else {
+            ::core::cmp::Ordering::Equal
+        }
     };
 }

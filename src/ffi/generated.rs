@@ -13,6 +13,7 @@ use pyo3::prelude::*;
 use std::prelude::*;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
+type Ordering = i8;
 #[doc = " The day of the month and its related month in a leap year."]
 #[cfg_attr(feature = "c", repr(C))]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
@@ -44,6 +45,12 @@ impl MonthDay {
         let this = self;
         let this: &crate::MonthDay = &this.clone().into();
         unsafe { ::core::mem::transmute(crate::MonthDay::day(this)) }
+    }
+    #[doc = " Const-context definition of [`Ord::cmp`]."]
+    pub fn cmp(&self, other: &MonthDay) -> Ordering {
+        let this = self;
+        let this: &crate::MonthDay = &this.clone().into();
+        unsafe { ::core::mem::transmute(crate::MonthDay::cmp(this, &other.clone().into())) }
     }
 }
 #[doc = " A Jalali valid date.\n\n See [`Year`] for more information about year count. [`Self::MIN`] to [`Self::MAX`] is the\n representable range (not necessarily all correct in leap calculation or conversion). Year 0 is\n not a valid year (see [`Year::ZERO_REPLACEMENT`])."]
@@ -98,6 +105,12 @@ impl Date {
         let this: &crate::Date = &this.clone().into();
         unsafe { ::core::mem::transmute(crate::Date::to_jtm(this)) }
     }
+    #[doc = " Const-context definition of [`Ord::cmp`]."]
+    pub fn cmp(&self, other: &Date) -> Ordering {
+        let this = self;
+        let this: &crate::Date = &this.clone().into();
+        unsafe { ::core::mem::transmute(crate::Date::cmp(this, &other.clone().into())) }
+    }
 }
 #[doc = " Counts consecutive days for addition and subtraction operations."]
 pub type IDayDiff = i32;
@@ -142,6 +155,14 @@ impl Month {
         let this: &crate::Month = &this.clone().into();
         unsafe { ::core::mem::transmute(crate::Month::get(this)) }
     }
+    #[doc = " Const-context definition of [`Ord::cmp`]."]
+    pub fn cmp(&self, other: UMonth) -> Ordering {
+        let this = self;
+        let this: &crate::Month = &this.clone().into();
+        let other: Month = other.into();
+        let other: crate::Month = other.into();
+        unsafe { ::core::mem::transmute(crate::Month::cmp(this, &other)) }
+    }
 }
 #[doc = " A value representing a day of a year in a leap year."]
 #[cfg_attr(feature = "c", repr(transparent))]
@@ -157,6 +178,14 @@ impl Ordinal {
         let this = self;
         let this: &crate::Ordinal = &this.clone().into();
         unsafe { ::core::mem::transmute(crate::Ordinal::get(this)) }
+    }
+    #[doc = " Const-context definition of [`Ord::cmp`]."]
+    pub fn cmp(&self, other: UOrdinal) -> Ordering {
+        let this = self;
+        let this: &crate::Ordinal = &this.clone().into();
+        let other: Ordinal = other.into();
+        let other: crate::Ordinal = other.into();
+        unsafe { ::core::mem::transmute(crate::Ordinal::cmp(this, &other)) }
     }
 }
 #[doc = " The base year counter type for Jalali calendar (no 0 variant)."]
@@ -192,19 +221,30 @@ impl Year {
         let this: &crate::Year = &this.clone().into();
         unsafe { ::core::mem::transmute(crate::Year::get(this)) }
     }
+    #[doc = " Const-context definition of [`Ord::cmp`]."]
+    pub fn cmp(&self, other: IYear) -> Ordering {
+        let this = self;
+        let this: &crate::Year = &this.clone().into();
+        let other: Year = other.into();
+        let other: crate::Year = other.into();
+        unsafe { ::core::mem::transmute(crate::Year::cmp(this, &other)) }
+    }
 }
 #[cfg(feature = "py")]
 #[pymodule(name = "jelal")]
 fn __pymodule(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(_year_cmp, m)?)?;
     m.add_function(wrap_pyfunction!(_year_get, m)?)?;
     m.add_function(wrap_pyfunction!(_year_max_ordinal, m)?)?;
     m.add_function(wrap_pyfunction!(_year_is_leap, m)?)?;
     m.add_function(wrap_pyfunction!(_year_is_no_leap_correction, m)?)?;
     m.add_function(wrap_pyfunction!(_year_new, m)?)?;
     m.add_class::<Year>()?;
+    m.add_function(wrap_pyfunction!(_ordinal_cmp, m)?)?;
     m.add_function(wrap_pyfunction!(_ordinal_get, m)?)?;
     m.add_function(wrap_pyfunction!(_ordinal_new, m)?)?;
     m.add_class::<Ordinal>()?;
+    m.add_function(wrap_pyfunction!(_month_cmp, m)?)?;
     m.add_function(wrap_pyfunction!(_month_get, m)?)?;
     m.add_function(wrap_pyfunction!(_month_new, m)?)?;
     m.add_function(wrap_pyfunction!(_month_to_ordinal_assume_zero, m)?)?;
@@ -212,6 +252,7 @@ fn __pymodule(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(_date_ext_from_iyear, m)?)?;
     m.add_function(wrap_pyfunction!(_date_ext_from_year, m)?)?;
     m.add_function(wrap_pyfunction!(_date_ext_cmp, m)?)?;
+    m.add_function(wrap_pyfunction!(_date_cmp, m)?)?;
     #[cfg(feature = "c")]
     m.add_function(wrap_pyfunction!(_date_to_jtm, m)?)?;
     #[cfg(feature = "c")]
@@ -230,6 +271,7 @@ fn __pymodule(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(_monthday_ext_from_date, m)?)?;
     m.add_function(wrap_pyfunction!(_monthday_ext_from_ordinal, m)?)?;
     m.add_function(wrap_pyfunction!(_monthday_ext_cmp, m)?)?;
+    m.add_function(wrap_pyfunction!(_monthday_cmp, m)?)?;
     m.add_function(wrap_pyfunction!(_monthday_day, m)?)?;
     m.add_function(wrap_pyfunction!(_monthday_month, m)?)?;
     m.add_function(wrap_pyfunction!(_monthday_from_ordinal, m)?)?;
@@ -408,6 +450,18 @@ pub extern "C" fn monthday_day(this: &MonthDay) -> UMonthDay {
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn _monthday_day(this: &MonthDay) -> UMonthDay {
     MonthDay::day(&this.clone().into()).into()
+}
+#[doc = " Const-context definition of [`Ord::cmp`]."]
+#[cfg(feature = "c")]
+#[unsafe(no_mangle)]
+pub extern "C" fn monthday_cmp(this: &MonthDay, other: &MonthDay) -> Ordering {
+    MonthDay::cmp(&this.clone().into(), &other.clone().into()).into()
+}
+#[doc = " Const-context definition of [`Ord::cmp`]."]
+#[cfg_attr(feature = "py", pyfunction)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub fn _monthday_cmp(this: &MonthDay, other: &MonthDay) -> Ordering {
+    MonthDay::cmp(&this.clone().into(), &other.clone().into()).into()
 }
 #[cfg_attr(feature = "py", pymethods)]
 impl MonthDay {
@@ -769,6 +823,18 @@ pub extern "C" fn date_to_jtm(this: &Date) -> tm {
 pub fn _date_to_jtm(this: &Date) -> tm {
     Date::to_jtm(&this.clone().into()).into()
 }
+#[doc = " Const-context definition of [`Ord::cmp`]."]
+#[cfg(feature = "c")]
+#[unsafe(no_mangle)]
+pub extern "C" fn date_cmp(this: &Date, other: &Date) -> Ordering {
+    Date::cmp(&this.clone().into(), &other.clone().into()).into()
+}
+#[doc = " Const-context definition of [`Ord::cmp`]."]
+#[cfg_attr(feature = "py", pyfunction)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub fn _date_cmp(this: &Date, other: &Date) -> Ordering {
+    Date::cmp(&this.clone().into(), &other.clone().into()).into()
+}
 #[cfg_attr(feature = "py", pymethods)]
 impl Date {
     #[doc = " The furthest in the past that can be represented with this struct."]
@@ -1037,6 +1103,20 @@ pub fn _month_get(this: UMonth) -> UMonth {
     let this: Month = this.into();
     Month::get(&this).into()
 }
+#[doc = " Const-context definition of [`Ord::cmp`]."]
+#[cfg(feature = "c")]
+#[unsafe(no_mangle)]
+pub extern "C" fn month_cmp(this: UMonth, other: UMonth) -> Ordering {
+    let this: Month = this.into();
+    Month::cmp(&this, other.into()).into()
+}
+#[doc = " Const-context definition of [`Ord::cmp`]."]
+#[cfg_attr(feature = "py", pyfunction)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub fn _month_cmp(this: UMonth, other: UMonth) -> Ordering {
+    let this: Month = this.into();
+    Month::cmp(&this, other.into()).into()
+}
 #[cfg_attr(feature = "py", pymethods)]
 impl Month {
     #[doc = " Unix Epoch in this format (equivalent to Gregorian January (1st) in 1970, [`Year::EPOCH`])."]
@@ -1137,6 +1217,20 @@ pub extern "C" fn ordinal_get(this: UOrdinal) -> UOrdinal {
 pub fn _ordinal_get(this: UOrdinal) -> UOrdinal {
     let this: Ordinal = this.into();
     Ordinal::get(&this).into()
+}
+#[doc = " Const-context definition of [`Ord::cmp`]."]
+#[cfg(feature = "c")]
+#[unsafe(no_mangle)]
+pub extern "C" fn ordinal_cmp(this: UOrdinal, other: UOrdinal) -> Ordering {
+    let this: Ordinal = this.into();
+    Ordinal::cmp(&this, other.into()).into()
+}
+#[doc = " Const-context definition of [`Ord::cmp`]."]
+#[cfg_attr(feature = "py", pyfunction)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub fn _ordinal_cmp(this: UOrdinal, other: UOrdinal) -> Ordering {
+    let this: Ordinal = this.into();
+    Ordinal::cmp(&this, other.into()).into()
 }
 #[cfg_attr(feature = "py", pymethods)]
 impl Ordinal {
@@ -1289,6 +1383,20 @@ pub extern "C" fn year_get(this: IYear) -> IYear {
 pub fn _year_get(this: IYear) -> IYear {
     let this: Year = this.into();
     Year::get(&this).into()
+}
+#[doc = " Const-context definition of [`Ord::cmp`]."]
+#[cfg(feature = "c")]
+#[unsafe(no_mangle)]
+pub extern "C" fn year_cmp(this: IYear, other: IYear) -> Ordering {
+    let this: Year = this.into();
+    Year::cmp(&this, other.into()).into()
+}
+#[doc = " Const-context definition of [`Ord::cmp`]."]
+#[cfg_attr(feature = "py", pyfunction)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub fn _year_cmp(this: IYear, other: IYear) -> Ordering {
+    let this: Year = this.into();
+    Year::cmp(&this, other.into()).into()
 }
 #[cfg_attr(feature = "py", pymethods)]
 impl Year {

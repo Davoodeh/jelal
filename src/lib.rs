@@ -10,9 +10,6 @@ fn panic_handler(_: &core::panic::PanicInfo) -> ! {
 #[cfg(feature = "std")]
 extern crate std;
 
-#[macro_use]
-extern crate jelal_proc;
-
 use core::{
     cmp::Ordering,
     fmt::{Debug, Display},
@@ -35,10 +32,9 @@ pub use primitive::*;
 pub use crate::utility::DidSaturate;
 
 /// The day of the month and its related month in a leap year.
-#[derive(Debug, Clone, PartialEq, Eq, ConstFieldOrder)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MonthDay {
     /// The month of the year.
-    #[use_cmp]
     pub(crate) month: Month,
     /// The day of the associated month.
     pub(crate) day: UMonthDay,
@@ -212,6 +208,17 @@ impl MonthDay {
     pub const fn day(&self) -> UMonthDay {
         self.day
     }
+
+    /// Const-context definition of [`Ord::cmp`].
+    pub const fn cmp(&self, other: &Self) -> Ordering {
+        self.month.cmp(&other.month).then(cmp!(self.day, other.day))
+    }
+}
+
+impl PartialOrd for MonthDay {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(Ord::cmp(self, other))
+    }
 }
 
 impl Ord for MonthDay {
@@ -296,8 +303,7 @@ where
 /// See [`Year`] for more information about year count. [`Self::MIN`] to [`Self::MAX`] is the
 /// representable range (not necessarily all correct in leap calculation or conversion). Year 0 is
 /// not a valid year (see [`Year::ZERO_REPLACEMENT`]).
-#[derive(Debug, Clone, PartialEq, Eq, ConstFieldOrder)]
-#[use_cmp]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Date {
     /// The year of this date.
     pub(crate) year: Year,
@@ -613,6 +619,19 @@ impl Date {
         let mut jtm = tm::new_zero();
         self.update_jtm(&mut jtm);
         jtm
+    }
+
+    /// Const-context definition of [`Ord::cmp`].
+    pub const fn cmp(&self, other: &Self) -> Ordering {
+        self.year
+            .cmp(&other.year)
+            .then(self.ordinal.cmp(&other.ordinal))
+    }
+}
+
+impl PartialOrd for Date {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(Ord::cmp(self, other))
     }
 }
 

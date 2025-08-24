@@ -11,6 +11,16 @@
 
 # `0.4.2`
 
+## Add
+
+- `Ordering` to `generated` module
+- `cmp` functions that are more primitive than their `ext_cmp` counterpart as a
+  side-effect of `jelal_proc` removal
+
+## Remove
+
+- `jelal_proc` crate (version 0.5.0)
+
 ## Fix
 
 - A bug in `codegen` where `Self` typed parameters in methods (not `self`) would

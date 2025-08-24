@@ -268,8 +268,8 @@ developing.
 - Since `Makefile.toml` searches `Cargo.toml` `features` section, keep that
   simple, formatted and keep each key-value pair on one line with no `.`
   notation.
-- Do not use any proc-macro if not necessary (`jelal_proc` was here before the
-  `codegen` crate and will probably be removed)
+- Do not use any proc-macro if not necessary (`jelal_proc` is discontinued and
+  if necessary, will host them)
 - Keep changes in as small as possible commits with imperative short
   descriptions.
 - Mention the changes in the changelog in the order of "Change", "Remove" and
@@ -296,7 +296,6 @@ See the `CHANGELOG` file in the source for the news about each release.
 - Add a class based C++ intermediate (possibly to `codegen`).
 - Add Github build tools, lints, formatters and Clippy.
 - Add Windows and MacOS support (maybe already there, but should be tested)
-- Remove `jelal_proc`
 - Clean `codegen`
 - Add a script that builds and measures the most minimal and optimized (for
   size) version automatically to add it to this readme (are we still small?)

@@ -42,7 +42,7 @@ pub type IOrdinal = i16;
 pub type IYear = i32;
 
 /// Holds valid months count.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, ConstFieldOrder)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct Month(pub(crate) UMonth);
 
@@ -90,6 +90,17 @@ impl Month {
     pub const fn get(&self) -> UMonth {
         self.0
     }
+
+    /// Const-context definition of [`Ord::cmp`].
+    pub const fn cmp(&self, other: &Self) -> Ordering {
+        cmp!(self.0, other.0)
+    }
+}
+
+impl PartialOrd for Month {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(Ord::cmp(self, other))
+    }
 }
 
 impl Ord for Month {
@@ -105,7 +116,7 @@ impl From<Month> for Ordinal {
 }
 
 /// A value representing a day of a year in a leap year.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, ConstFieldOrder)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct Ordinal(pub(crate) UOrdinal);
 
@@ -146,6 +157,17 @@ impl Ordinal {
     pub const fn get(&self) -> UOrdinal {
         self.0
     }
+
+    /// Const-context definition of [`Ord::cmp`].
+    pub const fn cmp(&self, other: &Self) -> Ordering {
+        cmp!(self.0, other.0)
+    }
+}
+
+impl PartialOrd for Ordinal {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(Ord::cmp(self, other))
+    }
 }
 
 impl Ord for Ordinal {
@@ -157,7 +179,7 @@ impl Ord for Ordinal {
 // TODO rename impl_new to new_strict and implement new off of it.
 
 /// The base year counter type for Jalali calendar (no 0 variant).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, ConstFieldOrder)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct Year(pub(crate) IYear);
 
@@ -283,6 +305,17 @@ impl Year {
     /// Return the owned types of this value.
     pub const fn get(&self) -> IYear {
         self.0
+    }
+
+    /// Const-context definition of [`Ord::cmp`].
+    pub const fn cmp(&self, other: &Self) -> Ordering {
+        cmp!(self.0, other.0)
+    }
+}
+
+impl PartialOrd for Year {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(Ord::cmp(self, other))
     }
 }
 

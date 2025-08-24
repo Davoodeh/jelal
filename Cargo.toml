@@ -1,6 +1,6 @@
 [package]
 name = "jelal"
-version = "0.4.1"
+version = "0.4.2"
 description = "A minimal, no-std modern Jalali (Persian/Iranian/Shamsi) calendar for developers with diverse language support (Rust, JS/TS/WASM, C/C++, Python, and more)"
 edition = "2024"
 rust-version = "1.85" # technically much lower, but aim is for 2024
@@ -32,8 +32,6 @@ lto = true
 opt-level = 3
 
 [dependencies]
-jelal_proc = { version = "0.4.0", path = "./jelal_proc" }
-
 # extension-module feature for pyo3 is disabled by default (not to fail the
 # tests) so build with --features=pyo3/extension-module when making the package
 # as it is in the build script.

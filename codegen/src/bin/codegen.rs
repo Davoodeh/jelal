@@ -60,6 +60,10 @@ fn generate_content(items: Vec<Item>) -> TokenStream {
 
         use crate::ffi::*;
 
+        // The hack for transparent values:
+        // TODO let it determine automatically
+        type Ordering = i8;
+
         #(#items)*
     }
 }

@@ -1,7 +1,3 @@
-A list of minimal proc macros used in [`jelal`](https://crates.io/crates/jelal).
-
-Changelogs and all the documents can be found in the aforementioned library.
-
-This is a private (in programming sense) for usage in
-[`jelal`](https://crates.io/crates/jelal) crate only and should not be relied
-on.
+This crate used to hold proc macros for
+[`jelal`](https://crates.io/crates/jelal). As of now, no proc macro is used in
+`jelal`. See the crate documents for more information.
